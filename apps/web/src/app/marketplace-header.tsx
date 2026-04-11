@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Ticket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,18 +25,16 @@ export function MarketplaceHeader() {
   const scrolled = useScrolled(64);
 
   return (
-    <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-[1400px] items-center gap-6 px-6 py-5">
+    <header
+      className={[
+        "sticky top-0 z-30 backdrop-blur-md transition-all duration-300",
+        scrolled ? "bg-white/95 shadow-md" : "bg-transparent",
+      ].join(" ")}
+    >
+      <div className="mx-auto flex w-full max-w-[1536px] items-center gap-6 px-8 py-4">
         {/* Left */}
         <Link href="/" className="flex items-center">
-          <Image
-            src="/logo1.svg"
-            alt="Roletei"
-            width={120}
-            height={40}
-            style={{ width: "auto", height: "auto" }}
-            priority
-          />
+          <Image src="/logo1.svg" alt="Roletei" width={110} height={36} priority />
         </Link>
 
         {/* Center: search appears after scroll (desktop) */}
@@ -62,25 +60,29 @@ export function MarketplaceHeader() {
         <nav className="ml-auto flex items-center gap-2 md:gap-4">
           <a
             href="#"
-            className="hidden px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
+            className={[
+              "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#DB7A1E] md:inline-flex",
+              scrolled ? "text-slate-900" : "text-muted-foreground",
+            ].join(" ")}
           >
             Quem Somos
           </a>
           <a
             href="#"
-            className="hidden px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
+            className={[
+              "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#DB7A1E] md:inline-flex",
+              scrolled ? "text-slate-900" : "text-muted-foreground",
+            ].join(" ")}
           >
             Contato
           </a>
 
-          <Button className="h-11 rounded-full bg-[hsl(var(--primary))] px-5 font-semibold text-[hsl(var(--primary-foreground))] shadow-sm hover:bg-[hsl(var(--primary))]/90">
+          <Button className="h-11 rounded-lg bg-[#DB7A1E] px-5 font-semibold text-white shadow-sm hover:bg-[#DB7A1E]/90">
+            <Ticket className="mr-2 h-4 w-4" />
             Achar o meu Rolê
           </Button>
         </nav>
       </div>
-
-      {/* Ultra subtle shadow to float */}
-      <div className="pointer-events-none h-px w-full bg-transparent shadow-[0_8px_30px_rgba(0,0,0,0.05)]" />
     </header>
   );
 }
