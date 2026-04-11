@@ -27,7 +27,7 @@ export function MarketplaceHeader() {
   return (
     <header
       className={[
-        "sticky top-0 z-30 transition-all duration-300 ease-in-out",
+        "sticky top-0 z-30 transition-shadow duration-300",
         scrolled ? "bg-white shadow-md" : "bg-transparent",
       ].join(" ")}
     >
@@ -60,7 +60,9 @@ export function MarketplaceHeader() {
                 className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-[#DB7A1E]"
               >
                 <MapPin className="h-4 w-4" />
-                <span>Belo Horizonte, MG</span>
+                <span className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
+                  Belo Horizonte, MG
+                </span>
                 <ChevronDown className="h-4 w-4" />
               </button>
             </div>
