@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 
 export default function AdminLoginPage() {
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-gradient-to-br from-[#DB7A1E] to-[#DB591F] px-6 py-12">
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-gradient-to-br from-[#F58318] to-[#F58318] px-6 py-12">
       {/* Decorative blur blob */}
       <div className="pointer-events-none absolute -left-24 -top-24 h-[420px] w-[420px] rounded-full bg-white/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -right-24 h-[520px] w-[520px] rounded-full bg-white/15 blur-3xl" />
@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
                   name="email"
                   type="email"
                   placeholder="admin@roletei.com"
-                  className="h-11 rounded-lg focus-visible:ring-[#DB7A1E]"
+                  className="h-11 rounded-lg focus-visible:ring-[#F58318]"
                   autoComplete="email"
                 />
               </div>
@@ -69,14 +69,14 @@ export default function AdminLoginPage() {
                   name="password"
                   type="password"
                   placeholder="••••••••"
-                  className="h-11 rounded-lg focus-visible:ring-[#DB7A1E]"
+                  className="h-11 rounded-lg focus-visible:ring-[#F58318]"
                   autoComplete="current-password"
                 />
               </div>
 
               <Button
                 type="button"
-                className="h-11 w-full rounded-lg bg-white font-semibold text-[#DB7A1E] ring-1 ring-white/60 transition-colors hover:bg-[#DB7A1E] hover:text-white"
+                className="h-11 w-full rounded-lg bg-white font-semibold text-[#F58318] ring-1 ring-white/60 transition-colors hover:bg-[#F58318] hover:text-white"
               >
                 Entrar no Painel
               </Button>

@@ -57,7 +57,7 @@ export function MarketplaceHeader() {
               <div className="mx-2 h-6 w-px bg-border" />
               <button
                 type="button"
-                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-[#DB7A1E]"
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-[#F58318]"
               >
                 <MapPin className="h-4 w-4" />
                 <span className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
@@ -74,7 +74,7 @@ export function MarketplaceHeader() {
           <a
             href="#"
             className={[
-              "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#DB7A1E] md:inline-flex",
+              "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#F58318] md:inline-flex",
               scrolled ? "text-slate-900" : "text-slate-900/90",
             ].join(" ")}
           >
@@ -83,14 +83,14 @@ export function MarketplaceHeader() {
           <a
             href="#"
             className={[
-              "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#DB7A1E] md:inline-flex",
+              "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#F58318] md:inline-flex",
               scrolled ? "text-slate-900" : "text-slate-900/90",
             ].join(" ")}
           >
             Contato
           </a>
 
-          <Button className="h-11 rounded-lg bg-[#DB7A1E] px-5 font-semibold text-white shadow-sm hover:bg-[#DB7A1E]/90">
+          <Button className="h-11 rounded-lg bg-[#F58318] px-5 font-semibold text-white shadow-sm hover:bg-[#F58318]/90">
             <Ticket className="mr-2 h-4 w-4" />
             Achar o meu Rolê
           </Button>

@@ -36,8 +36,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
 
-  --color-brand-light: #DB961F;
-  --color-brand-dark: #DB591F;
+  --color-brand-light: #F58318;
+  --color-brand-dark: #F58318;
 
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -59,7 +59,7 @@
   --card-foreground: 24 10% 15%;
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: 30 76% 49%; /* Correspondente ao seu #DB7A1E (Laranja Principal) */
+  --primary: 30 91% 53%; /* Correspondente ao seu #F58318 (Laranja Principal) */
   --primary-foreground: 48 100% 98%;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -70,7 +70,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: 30 20% 85%;
   --input: oklch(0.922 0 0);
-  --ring: 30 76% 49%;
+  --ring: 30 91% 53%;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);

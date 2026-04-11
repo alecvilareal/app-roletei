@@ -230,7 +230,7 @@ export default function Home() {
 
                 {/* CTA */}
                 <div className="md:px-3">
-                  <Button className="h-12 w-full rounded-xl bg-[#DB7A1E] px-8 font-semibold text-white hover:bg-[#DB7A1E]/90 md:w-auto">
+                  <Button className="h-12 w-full rounded-xl bg-[#F58318] px-8 font-semibold text-white hover:bg-[#F58318]/90 md:w-auto">
                     <Search className="mr-2 h-5 w-5" />
                     Buscar
                   </Button>
@@ -287,7 +287,7 @@ export default function Home() {
                       className="group flex flex-col items-center gap-2"
                     >
                       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-border/60 transition-transform duration-200 group-hover:-translate-y-0.5">
-                        <Icon className="h-5 w-5 text-slate-700 transition-colors duration-200 group-hover:text-[#DB7A1E]" />
+                        <Icon className="h-5 w-5 text-slate-700 transition-colors duration-200 group-hover:text-[#F58318]" />
                       </span>
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {label}

@@ -26,13 +26,13 @@ export function MarketplaceFooter() {
         <nav className="flex items-center gap-6 text-sm">
           <Link
             href="#"
-            className="text-muted-foreground transition-colors hover:text-[#DB7A1E]"
+            className="text-muted-foreground transition-colors hover:text-[#F58318]"
           >
             Privacidade
           </Link>
           <Link
             href="#"
-            className="text-muted-foreground transition-colors hover:text-[#DB7A1E]"
+            className="text-muted-foreground transition-colors hover:text-[#F58318]"
           >
             Termos de Uso
           </Link>
