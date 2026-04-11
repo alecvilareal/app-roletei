@@ -2,28 +2,23 @@
 
 import { useMemo, useState } from "react";
 import {
+  Calendar,
   ChefHat,
+  ChevronDown,
   Drama,
   Dumbbell,
-  GraduationCap,
   Music,
+  MapPin,
   PartyPopper,
   Search,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { EventCard, type Event } from "@/features/events/components/EventCard";
 
-type CategoryKey =
-  | "shows"
-  | "festas"
-  | "teatro"
-  | "gastronomia"
-  | "cursos"
-  | "esportes";
+type CategoryKey = "shows" | "festas" | "teatro" | "gastronomia" | "esportes";
 
 const CATEGORY_ITEMS: Array<{
   key: CategoryKey;
@@ -34,12 +29,10 @@ const CATEGORY_ITEMS: Array<{
   { key: "festas", label: "Festas", Icon: PartyPopper },
   { key: "teatro", label: "Teatro", Icon: Drama },
   { key: "gastronomia", label: "Gastronomia", Icon: ChefHat },
-  { key: "cursos", label: "Cursos", Icon: GraduationCap },
   { key: "esportes", label: "Esportes", Icon: Dumbbell },
 ];
 
-const FILTERS = ["Tudo", "Shows", "Gastronomia", "Baladas", "Grátis"] as const;
-type Filter = (typeof FILTERS)[number];
+type Filter = (typeof EVENTS)[number]["category"] | "Tudo";
 
 const EVENTS: Event[] = [
   {
@@ -164,9 +157,9 @@ function Section({
 }
 
 export default function Home() {
-  const [selectedFilter, setSelectedFilter] = useState<Filter>("Tudo");
+  const [selectedFilter] = useState<Filter>("Tudo");
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [, setCategory] = useState<CategoryKey | null>(null);
 
   const filtered = useMemo(
     () => filterEvents(EVENTS, selectedFilter, query),
@@ -179,140 +172,135 @@ export default function Home() {
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      {/* Hero - Sympla style gradient */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,#DB7A1E_0%,#DB591F_100%)]" />
-        <div
-          className="absolute inset-0 opacity-25"
-          style={{
-            backgroundImage:
-              "radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)",
-            backgroundSize: "14px 14px",
-          }}
-        />
-        <div className="relative mx-auto w-full max-w-[1400px] px-6 py-10 md:py-14">
-          <div className="max-w-3xl space-y-3 text-background">
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight md:text-5xl">
-              Descubra eventos incríveis em Belo Horizonte
-            </h1>
-            <p className="text-base/7 text-background/90 md:text-lg/8">
-              Shows, festas, teatro, gastronomia e muito mais — encontre seu rolê
-              do jeito mais rápido.
-            </p>
-          </div>
-
-          {/* Search Widget (desktop/tablet) */}
-          <Card className="mt-8 hidden border-none bg-background/95 p-4 shadow-2xl backdrop-blur md:block">
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-              <div className="relative md:col-span-6">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="O que você está procurando?"
-                  className="h-12 rounded-xl bg-card pl-10 shadow-sm focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]"
-                />
-              </div>
-
-              <div className="md:col-span-3">
-                <Input
-                  defaultValue="Belo Horizonte"
-                  placeholder="Onde?"
-                  className="h-12 rounded-xl bg-card shadow-sm"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <Input
-                  value={
-                    category
-                      ? CATEGORY_ITEMS.find((c) => c.key === category)?.label
-                      : ""
-                  }
-                  readOnly
-                  placeholder="Categoria"
-                  className="h-12 rounded-xl bg-card shadow-sm"
-                />
-              </div>
-
-              <div className="md:col-span-1">
-                <Button className="h-12 w-full rounded-xl bg-[hsl(var(--primary))] font-semibold text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90">
-                  Buscar
-                </Button>
-              </div>
-            </div>
-          </Card>
-
-          {/* Mobile simplified search bar */}
-          <div className="mt-6 md:hidden">
-            <Button
-              variant="outline"
-              className="h-12 w-full justify-start gap-2 rounded-xl border-border/40 bg-background/95 text-muted-foreground shadow-xl"
-            >
-              <Search className="h-4 w-4 text-[hsl(var(--primary))]" />
-              Buscar eventos em BH…
-            </Button>
-          </div>
-
-          {/* Quick filters (kept) */}
-          <div className="mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {FILTERS.map((f) => {
-              const active = f === selectedFilter;
-              return (
-                <Badge
-                  key={f}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedFilter(f)}
-                  className={[
-                    "shrink-0 select-none rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "border-transparent bg-background text-foreground"
-                      : "border-background/40 bg-background/10 text-background hover:bg-background/15",
-                  ].join(" ")}
-                >
-                  {f}
-                </Badge>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories carousel */}
-      <section className="mx-auto w-full max-w-[1400px] px-6 py-10">
-        <div className="flex gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {CATEGORY_ITEMS.map(({ key, label, Icon }) => {
-            const active = key === category;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setCategory((c) => (c === key ? null : key))}
-                className="group flex shrink-0 flex-col items-center gap-3"
-              >
-                <div
-                  className={[
-                    "flex h-16 w-16 items-center justify-center rounded-full bg-card shadow-sm transition-transform duration-200 group-hover:scale-105",
-                    active ? "ring-2 ring-[hsl(var(--primary))]" : "ring-1 ring-border/60",
-                  ].join(" ")}
-                >
-                  <Icon
-                    className={[
-                      "h-7 w-7 transition-transform duration-200",
-                      active
-                        ? "text-[hsl(var(--primary))]"
-                        : "text-muted-foreground group-hover:text-foreground",
-                      "group-hover:scale-110",
-                    ].join(" ")}
+      {/* Hero - marketplace minimalista (hierarquia: busca -> recomendados -> categorias) */}
+      <section className="bg-slate-50">
+        <div className="mx-auto w-full max-w-[1536px] px-6 py-8 md:py-10">
+          {/* Search Widget (topo) */}
+          <div>
+            <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white shadow-sm ring-1 ring-border/60">
+              <div className="grid grid-cols-1 gap-3 p-4 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center md:gap-0">
+                {/* O que */}
+                <div className="flex items-center gap-3 rounded-xl px-3 py-3 md:py-2">
+                  <Search className="h-5 w-5 text-slate-500" />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="O que você quer curtir?"
+                    className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500"
                   />
                 </div>
-                <div className="text-sm font-medium text-foreground">{label}</div>
-              </button>
-            );
-          })}
+
+                <div className="hidden h-10 w-px bg-border md:block" />
+
+                {/* Onde */}
+                <button
+                  type="button"
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-slate-500" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-slate-500">Onde</div>
+                      <div className="truncate text-sm font-semibold text-slate-900">
+                        Belo Horizonte, MG
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronDown className="h-5 w-5 text-slate-500" />
+                </button>
+
+                <div className="hidden h-10 w-px bg-border md:block" />
+
+                {/* Data */}
+                <button
+                  type="button"
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:py-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-slate-500" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-slate-500">Data</div>
+                      <div className="truncate text-sm font-semibold text-slate-900">
+                        Qualquer data
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronDown className="h-5 w-5 text-slate-500" />
+                </button>
+
+                {/* CTA */}
+                <div className="md:pl-4">
+                  <Button className="h-12 w-full rounded-xl bg-[#DB7A1E] px-8 font-semibold text-white hover:bg-[#DB7A1E]/90 md:w-auto">
+                    <Search className="mr-2 h-5 w-5" />
+                    Buscar
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Recomendados (carrossel) */}
+          <div className="mt-8">
+            <div className="mx-auto w-full max-w-[1400px]">
+              <h2 className="text-base font-semibold tracking-tight text-foreground md:text-lg">
+                Recomendados para você
+              </h2>
+
+              <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-6 sm:pb-3">
+                <div className="flex gap-4 sm:gap-6 max-sm:snap-x max-sm:snap-mandatory">
+                  {featured.map((event) => (
+                    <a
+                      key={`rec-${event.id}`}
+                      href="#"
+                      className="group relative h-[180px] w-[320px] shrink-0 overflow-hidden rounded-2xl bg-slate-200 ring-1 ring-border/60 sm:h-[220px] sm:w-[420px] max-sm:snap-center"
+                    >
+                      <Image
+                        src={event.image.src}
+                        alt={event.image.alt}
+                        fill
+                        sizes="(max-width: 640px) 320px, 420px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        priority={false}
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.50),transparent_55%)]" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
+                          {event.title}
+                        </div>
+                        <div className="mt-1 text-xs text-white/85">
+                          {event.locationLabel}
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Categorias (discretas, abaixo do carrossel) */}
+              <div className="mt-6 flex justify-center">
+                <div className="grid grid-cols-3 gap-4 sm:grid-cols-5 sm:gap-6">
+                  {CATEGORY_ITEMS.map(({ key, label, Icon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setCategory((c) => (c === key ? null : key))}
+                      className="group flex flex-col items-center gap-2"
+                    >
+                      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-border/60 transition-transform duration-200 group-hover:-translate-y-0.5">
+                        <Icon className="h-5 w-5 text-slate-700 transition-colors duration-200 group-hover:text-[#DB7A1E]" />
+                      </span>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
 
       {/* Sections */}
       <Section

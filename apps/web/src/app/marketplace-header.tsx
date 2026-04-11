@@ -51,7 +51,7 @@ export function MarketplaceHeader() {
             <div className="flex h-11 w-full items-center rounded-full border bg-card px-4">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Encontrar o meu rolê"
+                placeholder="O que você quer curtir hoje?"
                 className="h-10 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0"
               />
               <div className="mx-2 h-6 w-px bg-border" />
