@@ -1,12 +1,42 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import {
+  ChefHat,
+  Drama,
+  Dumbbell,
+  GraduationCap,
+  Music,
+  PartyPopper,
+  Search,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { EventCard, type Event } from "@/features/events/components/EventCard";
+
+type CategoryKey =
+  | "shows"
+  | "festas"
+  | "teatro"
+  | "gastronomia"
+  | "cursos"
+  | "esportes";
+
+const CATEGORY_ITEMS: Array<{
+  key: CategoryKey;
+  label: string;
+  Icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { key: "shows", label: "Shows", Icon: Music },
+  { key: "festas", label: "Festas", Icon: PartyPopper },
+  { key: "teatro", label: "Teatro", Icon: Drama },
+  { key: "gastronomia", label: "Gastronomia", Icon: ChefHat },
+  { key: "cursos", label: "Cursos", Icon: GraduationCap },
+  { key: "esportes", label: "Esportes", Icon: Dumbbell },
+];
 
 const FILTERS = ["Tudo", "Shows", "Gastronomia", "Baladas", "Grátis"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -15,13 +45,10 @@ const EVENTS: Event[] = [
   {
     id: "1",
     title: "Baile do Viaduto — Edição Sextou",
-    venue: "Viaduto Santa Tereza",
-    neighborhood: "Centro",
-    dateLabel: "Sex, 19:00",
+    locationLabel: "Viaduto Santa Tereza • Belo Horizonte",
     dateChip: { day: "11", month: "ABR" },
-    category: "Baladas",
+    category: "Festas",
     priceLabel: "Grátis",
-    distanceLabel: "Centro • 1,8km",
     image: {
       src: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80",
       alt: "Pista de dança com luzes",
@@ -30,13 +57,10 @@ const EVENTS: Event[] = [
   {
     id: "2",
     title: "Festival de Cervejas Artesanais — Mercado Novo",
-    venue: "Mercado Novo",
-    neighborhood: "Centro",
-    dateLabel: "Sáb, 14:00",
+    locationLabel: "Mercado Novo • Belo Horizonte",
     dateChip: { day: "12", month: "ABR" },
     category: "Gastronomia",
-    priceLabel: "A partir de R$ 25",
-    distanceLabel: "Centro • 2,2km",
+    priceLabel: "A partir de R$ 25,00",
     image: {
       src: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1200&q=80",
       alt: "Copos de cerveja artesanal",
@@ -45,13 +69,10 @@ const EVENTS: Event[] = [
   {
     id: "3",
     title: "Show Indie no A Obra — Bandas Locais",
-    venue: "A Obra Bar Dançante",
-    neighborhood: "Savassi",
-    dateLabel: "Sáb, 22:00",
+    locationLabel: "A Obra • Savassi • Belo Horizonte",
     dateChip: { day: "12", month: "ABR" },
     category: "Shows",
-    priceLabel: "A partir de R$ 40",
-    distanceLabel: "Savassi • 3,6km",
+    priceLabel: "A partir de R$ 40,00",
     image: {
       src: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80",
       alt: "Palco com show ao vivo",
@@ -60,13 +81,10 @@ const EVENTS: Event[] = [
   {
     id: "4",
     title: "Cine ao Ar Livre na Praça — Clássicos Mineiros",
-    venue: "Praça da Liberdade",
-    neighborhood: "Funcionários",
-    dateLabel: "Dom, 18:30",
+    locationLabel: "Praça da Liberdade • Belo Horizonte",
     dateChip: { day: "13", month: "ABR" },
-    category: "Grátis",
+    category: "Teatro",
     priceLabel: "Grátis",
-    distanceLabel: "Funcionários • 4,1km",
     image: {
       src: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1200&q=80",
       alt: "Cinema ao ar livre",
@@ -75,13 +93,10 @@ const EVENTS: Event[] = [
   {
     id: "5",
     title: "Brunch & Vinil — Café com DJ",
-    venue: "Café Palhares (Pop-up)",
-    neighborhood: "Centro",
-    dateLabel: "Dom, 10:00",
+    locationLabel: "Pop-up no Centro • Belo Horizonte",
     dateChip: { day: "13", month: "ABR" },
     category: "Gastronomia",
-    priceLabel: "A partir de R$ 55",
-    distanceLabel: "Centro • 2,0km",
+    priceLabel: "A partir de R$ 55,00",
     image: {
       src: "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=80",
       alt: "Mesa de brunch",
@@ -90,13 +105,10 @@ const EVENTS: Event[] = [
   {
     id: "6",
     title: "Noite de Pagode — Quintal do Chalé",
-    venue: "Quintal do Chalé",
-    neighborhood: "Serra",
-    dateLabel: "Qui, 20:00",
+    locationLabel: "Quintal do Chalé • Serra • BH",
     dateChip: { day: "17", month: "ABR" },
     category: "Shows",
-    priceLabel: "A partir de R$ 35",
-    distanceLabel: "Serra • 5,2km",
+    priceLabel: "A partir de R$ 35,00",
     image: {
       src: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1200&q=80",
       alt: "Show com músicos no palco",
@@ -108,154 +120,240 @@ function filterEvents(events: Event[], filter: Filter, query: string) {
   const q = query.trim().toLowerCase();
 
   return events.filter((e) => {
-    const matchesFilter = filter === "Tudo" ? true : e.category === filter;
+    const matchesFilter =
+      filter === "Tudo"
+        ? true
+        : `${e.category}`.toLowerCase().includes(filter.toLowerCase());
+
     const matchesQuery =
       q.length === 0
         ? true
-        : `${e.title} ${e.venue} ${e.neighborhood ?? ""} ${e.category}`
-            .toLowerCase()
-            .includes(q);
+        : `${e.title} ${e.locationLabel} ${e.category}`.toLowerCase().includes(q);
 
     return matchesFilter && matchesQuery;
   });
 }
 
+function Section({
+  title,
+  description,
+  children,
+  action,
+}: {
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mx-auto mt-12 w-full max-w-[1400px] px-6">
+      <div className="mb-6 flex items-end justify-between gap-6">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
+            {title}
+          </h2>
+          {description ? (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 export default function Home() {
   const [selectedFilter, setSelectedFilter] = useState<Filter>("Tudo");
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<CategoryKey | null>(null);
 
   const filtered = useMemo(
     () => filterEvents(EVENTS, selectedFilter, query),
     [selectedFilter, query],
   );
 
+  const featured = filtered.slice(0, 4);
+  const weekend = filtered.slice(0, 8);
+  const free = filtered.filter((e) => e.priceLabel.toLowerCase().includes("grátis"));
+
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      {/* Header - Glass */}
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-[1400px] items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-8">
-            <div className="text-xl font-extrabold tracking-tight text-foreground">
-              Roletei
-            </div>
-
-            <nav className="hidden items-center gap-1 md:flex">
-              {["Explorar", "Hoje", "Favoritos"].map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-card hover:text-foreground"
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
+      {/* Hero - Sympla style gradient */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,#DB7A1E_0%,#DB591F_100%)]" />
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)",
+            backgroundSize: "14px 14px",
+          }}
+        />
+        <div className="relative mx-auto w-full max-w-[1400px] px-6 py-10 md:py-14">
+          <div className="max-w-3xl space-y-3 text-background">
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight md:text-5xl">
+              Descubra eventos incríveis em Belo Horizonte
+            </h1>
+            <p className="text-base/7 text-background/90 md:text-lg/8">
+              Shows, festas, teatro, gastronomia e muito mais — encontre seu rolê
+              do jeito mais rápido.
+            </p>
           </div>
 
-          <Button className="h-10 rounded-full bg-[hsl(var(--primary))] px-5 font-medium text-[hsl(var(--primary-foreground))] shadow-sm hover:bg-[hsl(var(--primary))]/90">
-            Entrar
-          </Button>
-        </div>
-      </header>
-
-      <main className="w-full pb-16">
-        {/* Hero background */}
-        <section className="relative overflow-hidden">
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-24 left-1/2 h-80 w-[900px] -translate-x-1/2 rounded-full bg-[hsl(var(--primary))]/15 blur-3xl" />
-            <div
-              className="absolute inset-0 opacity-[0.25]"
-              style={{
-                backgroundImage:
-                  "radial-gradient(rgba(0,0,0,0.08) 1px, transparent 1px)",
-                backgroundSize: "14px 14px",
-              }}
-            />
-          </div>
-
-          <div className="relative mx-auto w-full max-w-[1400px] px-6 py-12 md:py-16">
-            <div className="max-w-3xl space-y-6">
-              <p className="inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-medium text-muted-foreground shadow-sm">
-                Belo Horizonte • rolês em tempo real
-              </p>
-
-              <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground md:text-6xl">
-                O que tem pra hoje em BH?
-              </h1>
-
-              <p className="max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-                Encontre shows, gastronomia, festas e rolês grátis perto de você.
-                Do Centro à Savassi — tudo no mesmo lugar.
-              </p>
-
-              {/* Search - precision tool */}
-              <div className="relative w-full max-w-2xl">
-                <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[hsl(var(--primary))]" />
+          {/* Search Widget (desktop/tablet) */}
+          <Card className="mt-8 hidden border-none bg-background/95 p-4 shadow-2xl backdrop-blur md:block">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
+              <div className="relative md:col-span-6">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar rolês, lugares, bairros..."
-                  className="h-14 w-full rounded-full border-border/60 bg-card pl-12 pr-4 text-base shadow-xl focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))] focus-visible:ring-offset-0"
+                  placeholder="O que você está procurando?"
+                  className="h-12 rounded-xl bg-card pl-10 shadow-sm focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]"
                 />
               </div>
 
-              {/* Quick filters */}
-              <div className="flex gap-2 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {FILTERS.map((f) => {
-                  const active = f === selectedFilter;
+              <div className="md:col-span-3">
+                <Input
+                  defaultValue="Belo Horizonte"
+                  placeholder="Onde?"
+                  className="h-12 rounded-xl bg-card shadow-sm"
+                />
+              </div>
 
-                  return (
-                    <Badge
-                      key={f}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedFilter(f)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ")
-                          setSelectedFilter(f);
-                      }}
-                      className={[
-                        "shrink-0 select-none rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "border-transparent bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-                          : "border-border/70 bg-card text-muted-foreground hover:text-foreground",
-                      ].join(" ")}
-                    >
-                      {f}
-                    </Badge>
-                  );
-                })}
+              <div className="md:col-span-2">
+                <Input
+                  value={
+                    category
+                      ? CATEGORY_ITEMS.find((c) => c.key === category)?.label
+                      : ""
+                  }
+                  readOnly
+                  placeholder="Categoria"
+                  className="h-12 rounded-xl bg-card shadow-sm"
+                />
+              </div>
+
+              <div className="md:col-span-1">
+                <Button className="h-12 w-full rounded-xl bg-[hsl(var(--primary))] font-semibold text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90">
+                  Buscar
+                </Button>
               </div>
             </div>
-          </div>
-        </section>
+          </Card>
 
-        {/* Events */}
-        <section className="mx-auto mt-10 w-full max-w-[1400px] px-6">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Em alta hoje
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Seleção de rolês pra você decidir rápido.
-              </p>
-            </div>
+          {/* Mobile simplified search bar */}
+          <div className="mt-6 md:hidden">
+            <Button
+              variant="outline"
+              className="h-12 w-full justify-start gap-2 rounded-xl border-border/40 bg-background/95 text-muted-foreground shadow-xl"
+            >
+              <Search className="h-4 w-4 text-[hsl(var(--primary))]" />
+              Buscar eventos em BH…
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filtered.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
+          {/* Quick filters (kept) */}
+          <div className="mt-6 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {FILTERS.map((f) => {
+              const active = f === selectedFilter;
+              return (
+                <Badge
+                  key={f}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedFilter(f)}
+                  className={[
+                    "shrink-0 select-none rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                    active
+                      ? "border-transparent bg-background text-foreground"
+                      : "border-background/40 bg-background/10 text-background hover:bg-background/15",
+                  ].join(" ")}
+                >
+                  {f}
+                </Badge>
+              );
+            })}
           </div>
+        </div>
+      </section>
 
-          {filtered.length === 0 ? (
-            <div className="mt-12 text-center text-sm text-muted-foreground">
-              Nenhum rolê encontrado.
-            </div>
-          ) : null}
-        </section>
-      </main>
+      {/* Categories carousel */}
+      <section className="mx-auto w-full max-w-[1400px] px-6 py-10">
+        <div className="flex gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {CATEGORY_ITEMS.map(({ key, label, Icon }) => {
+            const active = key === category;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setCategory((c) => (c === key ? null : key))}
+                className="group flex shrink-0 flex-col items-center gap-3"
+              >
+                <div
+                  className={[
+                    "flex h-16 w-16 items-center justify-center rounded-full bg-card shadow-sm transition-transform duration-200 group-hover:scale-105",
+                    active ? "ring-2 ring-[hsl(var(--primary))]" : "ring-1 ring-border/60",
+                  ].join(" ")}
+                >
+                  <Icon
+                    className={[
+                      "h-7 w-7 transition-transform duration-200",
+                      active
+                        ? "text-[hsl(var(--primary))]"
+                        : "text-muted-foreground group-hover:text-foreground",
+                      "group-hover:scale-110",
+                    ].join(" ")}
+                  />
+                </div>
+                <div className="text-sm font-medium text-foreground">{label}</div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Sections */}
+      <Section
+        title="Eventos em Destaque em BH"
+        description="Uma curadoria com o que está bombando agora."
+        action={
+          <a
+            href="#"
+            className="hidden text-sm font-semibold text-[hsl(var(--primary))] hover:underline md:inline"
+          >
+            Ver tudo
+          </a>
+        }
+      >
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {featured.map((event) => (
+            <EventCard key={event.id} event={event} />
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        title="Para curtir este fim de semana"
+        description="Planos perfeitos pra sexta, sábado e domingo."
+      >
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {weekend.map((event) => (
+            <EventCard key={`weekend-${event.id}`} event={event} />
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Eventos Gratuitos" description="Rolês bons sem gastar nada.">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {(free.length ? free : featured).map((event) => (
+            <EventCard key={`free-${event.id}`} event={event} />
+          ))}
+        </div>
+      </Section>
+
+      <div className="h-16" />
     </div>
   );
 }
