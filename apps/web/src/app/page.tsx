@@ -178,9 +178,9 @@ export default function Home() {
           {/* Search Widget (topo) */}
           <div>
             <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white shadow-sm ring-1 ring-border/60">
-              <div className="grid grid-cols-1 gap-3 p-4 md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center md:gap-0">
+              <div className="flex flex-col gap-3 p-3 md:flex-row md:items-center md:gap-0">
                 {/* O que */}
-                <div className="flex items-center gap-3 rounded-xl px-3 py-3 md:py-2">
+                <div className="flex items-center gap-3 rounded-xl px-3 py-3 md:flex-[1.4] md:py-2">
                   <Search className="h-5 w-5 text-slate-500" />
                   <input
                     value={query}
@@ -195,7 +195,7 @@ export default function Home() {
                 {/* Onde */}
                 <button
                   type="button"
-                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:py-2"
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:flex-1 md:py-2"
                 >
                   <div className="flex items-center gap-2">
                     <MapPin className="h-5 w-5 text-slate-500" />
@@ -214,7 +214,7 @@ export default function Home() {
                 {/* Data */}
                 <button
                   type="button"
-                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:py-2"
+                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:flex-1 md:py-2"
                 >
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-slate-500" />
@@ -229,7 +229,7 @@ export default function Home() {
                 </button>
 
                 {/* CTA */}
-                <div className="md:pl-4">
+                <div className="md:px-3">
                   <Button className="h-12 w-full rounded-xl bg-[#DB7A1E] px-8 font-semibold text-white hover:bg-[#DB7A1E]/90 md:w-auto">
                     <Search className="mr-2 h-5 w-5" />
                     Buscar
