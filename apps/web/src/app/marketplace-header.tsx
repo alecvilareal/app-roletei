@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Search, Ticket } from "lucide-react";
+import { ChevronDown, MapPin, Search, Ticket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +27,8 @@ export function MarketplaceHeader() {
   return (
     <header
       className={[
-        "sticky top-0 z-30 backdrop-blur-md transition-all duration-300",
-        scrolled ? "bg-white/95 shadow-md" : "bg-transparent",
+        "sticky top-0 z-30 transition-all duration-300 ease-in-out",
+        scrolled ? "bg-white shadow-md" : "bg-transparent",
       ].join(" ")}
     >
       <div className="mx-auto flex w-full max-w-[1536px] items-center gap-6 px-8 py-4">
@@ -41,18 +41,29 @@ export function MarketplaceHeader() {
         <div className="hidden flex-1 justify-center md:flex">
           <div
             className={[
-              "relative w-full max-w-xl transition-all duration-200",
+              "w-full max-w-xl transition-all duration-200",
               scrolled
                 ? "opacity-100 translate-y-0"
                 : "pointer-events-none -translate-y-1 opacity-0",
             ].join(" ")}
             aria-hidden={!scrolled}
           >
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar eventos em BH…"
-              className="h-10 rounded-full bg-card pl-10 shadow-sm focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary))]"
-            />
+            <div className="flex h-11 w-full items-center rounded-full border bg-card px-4">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Encontrar o meu rolê"
+                className="h-10 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0"
+              />
+              <div className="mx-2 h-6 w-px bg-border" />
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-[#DB7A1E]"
+              >
+                <MapPin className="h-4 w-4" />
+                <span>Belo Horizonte, MG</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -62,7 +73,7 @@ export function MarketplaceHeader() {
             href="#"
             className={[
               "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#DB7A1E] md:inline-flex",
-              scrolled ? "text-slate-900" : "text-muted-foreground",
+              scrolled ? "text-slate-900" : "text-slate-900/90",
             ].join(" ")}
           >
             Quem Somos
@@ -71,7 +82,7 @@ export function MarketplaceHeader() {
             href="#"
             className={[
               "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#DB7A1E] md:inline-flex",
-              scrolled ? "text-slate-900" : "text-muted-foreground",
+              scrolled ? "text-slate-900" : "text-slate-900/90",
             ].join(" ")}
           >
             Contato
