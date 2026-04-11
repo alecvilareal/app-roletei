@@ -1,0 +1,16 @@
+{
+  "name": "app-roletei",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo Roletei (web + mobile) com Supabase e Meilisearch.",
+  "type": "module",
+  "packageManager": "npm@10",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "echo \"TODO: add lints per app/package\"",
+    "format": "echo \"TODO: add formatter\""
+  }
+}

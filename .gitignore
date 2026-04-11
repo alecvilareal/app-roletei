@@ -1,0 +1,78 @@
+# =========================
+# Roletei Monorepo (.gitignore)
+# Node + Next.js + Expo (React Native)
+# =========================
+
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.yarnrc.yml
+.npmrc
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Build outputs (generic)
+dist/
+build/
+out/
+coverage/
+.tmp/
+temp/
+.cache/
+
+# Next.js
+.next/
+.vercel/
+.next-cache/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+web-build/
+*.jks
+*.keystore
+*.p8
+*.mobileprovision
+*.cer
+*.pfx
+
+# Metro / RN
+metro-cache/
+react-native-packager-cache/
+haste-map-*
+
+# Turborepo (if added later)
+.turbo/
+
+# TypeScript
+*.tsbuildinfo
+
+# Supabase (if using CLI locally)
+supabase/.temp/
+supabase/.branches/
+
+# Meilisearch (if running locally)
+data.ms/
+meili_data/
+meilisearch-data/
