@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-import { MarketplaceHeader } from "./marketplace-header";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -23,7 +22,6 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full bg-background font-sans text-foreground">
-        <MarketplaceHeader />
         {children}
       </body>
     </html>
