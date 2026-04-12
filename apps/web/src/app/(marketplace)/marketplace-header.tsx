@@ -7,6 +7,7 @@ import { ChevronDown, MapPin, Search, Ticket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 function useScrolled(threshold = 56) {
   const [scrolled, setScrolled] = useState(false);
@@ -31,22 +32,32 @@ export function MarketplaceHeader() {
         scrolled ? "bg-white shadow-md" : "bg-transparent",
       ].join(" ")}
     >
-      <div className="mx-auto flex w-full max-w-[1536px] items-center gap-6 px-8 py-4">
+      <div
+        className={cn(
+          "mx-auto flex w-full max-w-[1536px] items-center px-8 py-4 transition-all",
+          scrolled ? "gap-6" : "gap-0",
+        )}
+      >
         {/* Left */}
         <Link
           href="/"
-          className={[
-            "flex items-center transition-all duration-500 ease-out transform",
+          className={cn(
+            "flex items-center overflow-hidden transition-all duration-500 ease-out",
             scrolled
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4 pointer-events-none",
-          ].join(" ")}
+              ? "w-[110px] opacity-100 mr-0"
+              : "w-0 opacity-0 pointer-events-none mr-0",
+          )}
         >
           <Image src="/logo1.svg" alt="Roletei" width={110} height={36} priority />
         </Link>
 
         {/* Center: search appears after scroll (desktop) */}
-        <div className="hidden flex-1 justify-center md:flex">
+        <div
+          className={cn(
+            "hidden justify-center md:flex transition-all",
+            scrolled ? "flex-1 opacity-100" : "w-0 flex-none opacity-0 overflow-hidden",
+          )}
+        >
           <div
             className={[
               "w-full max-w-xl transition-all duration-200",
@@ -79,10 +90,10 @@ export function MarketplaceHeader() {
 
         {/* Right */}
         <nav
-          className={[
-            "flex items-center gap-2 md:gap-4",
-            scrolled ? "ml-auto" : "mx-auto w-full justify-center",
-          ].join(" ")}
+          className={cn(
+            "flex items-center gap-4 transition-all",
+            scrolled ? "ml-auto" : "flex-1 justify-center",
+          )}
         >
           <a
             href="#"
