@@ -32,20 +32,16 @@ export function MarketplaceHeader() {
         scrolled ? "bg-white shadow-md" : "bg-transparent",
       ].join(" ")}
     >
-      <div
-        className={cn(
-          "mx-auto flex w-full max-w-[1536px] items-center px-8 py-4 transition-all",
-          scrolled ? "gap-6" : "gap-0",
-        )}
-      >
+      <div className="mx-auto flex w-full max-w-[1536px] items-center gap-0 px-8 py-4">
+        {/* Spacer esquerdo */}
+        <div className={cn("transition-all duration-500", scrolled ? "w-0 flex-none" : "flex-1")} />
+
         {/* Left */}
         <Link
           href="/"
           className={cn(
-            "flex items-center overflow-hidden transition-all duration-500 ease-out",
-            scrolled
-              ? "w-[110px] opacity-100 mr-0"
-              : "w-0 opacity-0 pointer-events-none mr-0",
+            "flex items-center overflow-hidden transition-all duration-500",
+            scrolled ? "w-[110px] opacity-100" : "w-0 opacity-0 pointer-events-none",
           )}
         >
           <Image src="/logo1.svg" alt="Roletei" width={110} height={36} priority />
@@ -54,7 +50,7 @@ export function MarketplaceHeader() {
         {/* Center: search appears after scroll (desktop) */}
         <div
           className={cn(
-            "hidden justify-center md:flex transition-all",
+            "hidden justify-center md:flex transition-all duration-500",
             scrolled ? "flex-1 opacity-100" : "w-0 flex-none opacity-0 overflow-hidden",
           )}
         >
@@ -89,12 +85,7 @@ export function MarketplaceHeader() {
         </div>
 
         {/* Right */}
-        <nav
-          className={cn(
-            "flex items-center gap-4 transition-all",
-            scrolled ? "ml-auto" : "flex-1 justify-center",
-          )}
-        >
+        <nav className="flex items-center gap-4">
           <a
             href="#"
             className={[
@@ -124,6 +115,9 @@ export function MarketplaceHeader() {
             Achar o meu Rolê
           </Button>
         </nav>
+
+        {/* Spacer direito */}
+        <div className={cn("transition-all duration-500", scrolled ? "w-0 flex-none" : "flex-1")} />
       </div>
     </header>
   );
