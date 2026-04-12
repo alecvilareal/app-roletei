@@ -5,6 +5,8 @@ import {
   Calendar,
   ChefHat,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Drama,
   Dumbbell,
   Music,
@@ -17,6 +19,7 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { EventCard, type Event } from "@/features/events/components/EventCard";
+import { cn } from "@/lib/utils";
 
 type CategoryKey = "shows" | "festas" | "teatro" | "gastronomia" | "esportes";
 
@@ -175,16 +178,26 @@ export default function Home() {
     [selectedFilter, query],
   );
 
-  const featured = filtered.slice(0, 4);
+  const featured = filtered.slice(0, 6);
   const weekend = filtered.slice(0, 8);
   const free = filtered.filter((e) => e.priceLabel.toLowerCase().includes("grátis"));
+
+  useEffect(() => {
+    if (!featured.length) return;
+
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % featured.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [featured.length]);
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
       {/* Hero - marketplace minimalista (hierarquia: busca -> recomendados -> categorias) */}
       <section className="bg-slate-50">
         <div className="mx-auto w-full max-w-[1536px] px-6 py-10 md:py-12">
-          <div className="flex justify-center mb-10">
+          <div className="mb-10 flex justify-center">
             <div
               className={[
                 "transition-all duration-500 ease-in transform",
@@ -192,9 +205,15 @@ export default function Home() {
                   ? "opacity-0 -translate-y-8"
                   : "opacity-100 translate-y-0",
               ].join(" ")}
-              style={{ minHeight: 84 }}
+              style={{ minHeight: 104 }}
             >
-              <Image src="/logo1.svg" alt="Roletei" width={260} height={84} priority />
+              <Image
+                src="/logo1.svg"
+                alt="Roletei"
+                width={320}
+                height={104}
+                priority
+              />
             </div>
           </div>
 
@@ -263,64 +282,146 @@ export default function Home() {
           </div>
 
           {/* Recomendados (carrossel) */}
-          <div className="mt-8">
+          <div className="mt-12">
             <div className="mx-auto w-full max-w-[1400px]">
-              <h2 className="text-base font-semibold tracking-tight text-foreground md:text-lg">
-                Recomendados para você
+              <h2 className="mb-0 w-full text-center text-base font-semibold tracking-tight text-foreground md:text-lg">
+                Próximos a você
               </h2>
 
-              <div className="relative mx-auto flex h-[250px] w-full max-w-5xl items-center justify-center overflow-hidden sm:h-[350px]">
+              <div className="relative mx-auto mt-0 flex h-[260px] w-full max-w-[1400px] items-center justify-center overflow-visible sm:h-[400px]">
                 {featured.map((event, index) => {
-                  const offset = index - activeIndex;
+                  const len = featured.length;
+                  const rawOffset = index - activeIndex;
+                  // Lógica para encontrar o caminho mais curto no círculo
+                  let offset = (rawOffset + Math.floor(len / 2)) % len;
+                  if (offset < 0) offset += len;
+                  offset -= Math.floor(len / 2);
 
-                  const cardClasses =
-                    offset === 0
-                      ? "z-30 scale-100 opacity-100 translate-x-0 cursor-default shadow-2xl"
-                      : offset === 1
-                        ? "z-20 scale-[0.85] opacity-60 translate-x-[65%] cursor-pointer shadow-lg hover:opacity-80"
-                        : offset === -1
-                          ? "z-20 scale-[0.85] opacity-60 -translate-x-[65%] cursor-pointer shadow-lg hover:opacity-80"
-                          : `z-10 scale-[0.75] opacity-0 pointer-events-none translate-x-[${
-                              offset > 0 ? "100%" : "-100%"
-                            }]`;
+                  const isCenter = offset === 0;
+                  const isLayer1 = Math.abs(offset) === 1;
+                  const isLayer2 = Math.abs(offset) === 2;
+                  const isHidden = !isCenter && !isLayer1 && !isLayer2;
+
+                  let translate = "translate-x-0";
+                  let scale = "scale-100";
+                  let zIndex = "z-40";
+                  let opacity = "opacity-100";
+
+                  let overlayOpacity = "opacity-0";
+
+                  if (offset === -1) {
+                    translate = "-translate-x-[55%]";
+                    scale = "scale-[0.85]";
+                    zIndex = "z-30";
+                    overlayOpacity = "opacity-40";
+                  } else if (offset === 1) {
+                    translate = "translate-x-[55%]";
+                    scale = "scale-[0.85]";
+                    zIndex = "z-30";
+                    overlayOpacity = "opacity-40";
+                  } else if (offset === -2) {
+                    translate = "-translate-x-[95%]";
+                    scale = "scale-[0.70]";
+                    zIndex = "z-20";
+                    overlayOpacity = "opacity-75";
+                  } else if (offset === 2) {
+                    translate = "translate-x-[95%]";
+                    scale = "scale-[0.70]";
+                    zIndex = "z-20";
+                    overlayOpacity = "opacity-75";
+                  } else if (isHidden) {
+                    scale = "scale-75";
+                    zIndex = "z-10";
+                    opacity = "opacity-0 pointer-events-none";
+                    overlayOpacity = "opacity-0";
+                  }
 
                   return (
                     <a
                       key={`rec-${event.id}`}
                       href="#"
                       onClick={(e) => {
-                        e.preventDefault();
-                        setActiveIndex(index);
+                        if (!isCenter) {
+                          e.preventDefault();
+                          setActiveIndex(index);
+                        }
                       }}
-                      className={[
-                        "absolute",
-                        "transition-all duration-500 ease-out",
-                        "w-[80%] max-w-[600px] h-full rounded-2xl overflow-hidden",
-                        "bg-slate-200 ring-1 ring-border/60",
-                        "group",
-                        cardClasses,
-                      ].join(" ")}
+                      className={cn(
+                        "absolute transition-all duration-500 ease-out",
+                        "h-[220px] w-[300px] sm:h-[320px] sm:w-[500px] overflow-hidden rounded-2xl bg-slate-900 shadow-2xl",
+                        translate,
+                        scale,
+                        zIndex,
+                        opacity,
+                        !isCenter && "cursor-pointer",
+                      )}
                     >
                       <Image
                         src={event.image.src}
                         alt={event.image.alt}
                         fill
-                        sizes="(max-width: 1024px) 80vw, 600px"
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                        priority={false}
+                        sizes="(max-width: 640px) 300px, 500px"
+                        className={cn(
+                          "object-cover transition-transform duration-500",
+                          isCenter && "group-hover:scale-[1.03]",
+                          !isCenter && "blur-[2px]",
+                        )}
+                        priority={isCenter}
                       />
-                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.50),transparent_55%)]" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <div className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute inset-0 bg-white transition-opacity duration-500",
+                          overlayOpacity,
+                        )}
+                      />
+                      <div
+                        className={cn(
+                          "pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.80),transparent_50%)] transition-opacity duration-500",
+                          offset === 0 ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                      <div
+                        className={cn(
+                          "absolute bottom-0 left-0 right-0 p-5 sm:p-6 transition-opacity duration-500",
+                          offset === 0 ? "opacity-100" : "opacity-0",
+                        )}
+                      >
+                        <div className="line-clamp-2 text-base font-bold text-white sm:text-xl drop-shadow-md">
                           {event.title}
                         </div>
-                        <div className="mt-1 text-xs text-white/85">
+                        <div className="mt-2 text-xs font-medium text-white/90 sm:text-sm drop-shadow">
                           {event.locationLabel}
                         </div>
                       </div>
                     </a>
                   );
                 })}
+
+                <button
+                  type="button"
+                  aria-label="Anterior"
+                  onClick={() =>
+                    setActiveIndex((prev) =>
+                      featured.length ? (prev - 1 + featured.length) % featured.length : 0,
+                    )
+                  }
+                  className="absolute left-4 sm:left-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-white text-slate-800 shadow-2xl ring-1 ring-black/5 transition-all hover:scale-110 hover:text-[#F58318] hover:shadow-2xl"
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label="Próximo"
+                  onClick={() =>
+                    setActiveIndex((prev) =>
+                      featured.length ? (prev + 1) % featured.length : 0,
+                    )
+                  }
+                  className="absolute right-4 sm:right-8 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-white text-slate-800 shadow-2xl ring-1 ring-black/5 transition-all hover:scale-110 hover:text-[#F58318] hover:shadow-2xl"
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </button>
               </div>
 
               {/* Categorias (discretas, abaixo do carrossel) */}
