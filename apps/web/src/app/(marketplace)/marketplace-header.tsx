@@ -33,7 +33,15 @@ export function MarketplaceHeader() {
     >
       <div className="mx-auto flex w-full max-w-[1536px] items-center gap-6 px-8 py-4">
         {/* Left */}
-        <Link href="/" className="flex items-center">
+        <Link
+          href="/"
+          className={[
+            "flex items-center transition-all duration-500 ease-out transform",
+            scrolled
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-4 pointer-events-none",
+          ].join(" ")}
+        >
           <Image src="/logo1.svg" alt="Roletei" width={110} height={36} priority />
         </Link>
 
@@ -70,12 +78,17 @@ export function MarketplaceHeader() {
         </div>
 
         {/* Right */}
-        <nav className="ml-auto flex items-center gap-2 md:gap-4">
+        <nav
+          className={[
+            "flex items-center gap-2 md:gap-4",
+            scrolled ? "ml-auto" : "mx-auto w-full justify-center",
+          ].join(" ")}
+        >
           <a
             href="#"
             className={[
               "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#F58318] md:inline-flex",
-              scrolled ? "text-slate-900" : "text-slate-900/90",
+              scrolled ? "text-slate-900" : "text-slate-600",
             ].join(" ")}
           >
             Quem Somos
@@ -84,13 +97,18 @@ export function MarketplaceHeader() {
             href="#"
             className={[
               "hidden px-2 py-2 text-sm font-medium transition-colors hover:text-[#F58318] md:inline-flex",
-              scrolled ? "text-slate-900" : "text-slate-900/90",
+              scrolled ? "text-slate-900" : "text-slate-600",
             ].join(" ")}
           >
             Contato
           </a>
 
-          <Button className="h-11 rounded-lg bg-[#F58318] px-5 font-semibold text-white shadow-sm hover:bg-[#F58318]/90">
+          <Button
+            className={[
+              "h-11 rounded-lg bg-[#F58318] px-5 font-semibold text-white shadow-sm hover:bg-[#F58318]/90 transition-all duration-300",
+              scrolled ? "scale-100 opacity-100 flex" : "scale-95 opacity-0 hidden",
+            ].join(" ")}
+          >
             <Ticket className="mr-2 h-4 w-4" />
             Achar o meu Rolê
           </Button>

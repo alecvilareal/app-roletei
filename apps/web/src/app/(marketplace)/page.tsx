@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   ChefHat,
@@ -160,6 +160,14 @@ export default function Home() {
   const [selectedFilter] = useState<Filter>("Tudo");
   const [query, setQuery] = useState("");
   const [, setCategory] = useState<CategoryKey | null>(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 64);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const filtered = useMemo(
     () => filterEvents(EVENTS, selectedFilter, query),
@@ -174,7 +182,21 @@ export default function Home() {
     <div className="min-h-dvh bg-background text-foreground">
       {/* Hero - marketplace minimalista (hierarquia: busca -> recomendados -> categorias) */}
       <section className="bg-slate-50">
-        <div className="mx-auto w-full max-w-[1536px] px-6 py-8 md:py-10">
+        <div className="mx-auto w-full max-w-[1536px] px-6 py-10 md:py-12">
+          <div className="flex justify-center mb-10">
+            <div
+              className={[
+                "transition-all duration-500 ease-in transform",
+                scrolled
+                  ? "opacity-0 -translate-y-8"
+                  : "opacity-100 translate-y-0",
+              ].join(" ")}
+              style={{ minHeight: 65 }}
+            >
+              <Image src="/logo1.svg" alt="Roletei" width={200} height={65} priority />
+            </div>
+          </div>
+
           {/* Search Widget (topo) */}
           <div>
             <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white shadow-sm ring-1 ring-border/60">
