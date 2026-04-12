@@ -34,13 +34,18 @@ export function MarketplaceHeader() {
     >
       <div className="mx-auto flex w-full max-w-[1536px] items-center gap-0 px-8 py-4">
         {/* Spacer esquerdo */}
-        <div className={cn("transition-all duration-500", scrolled ? "w-0 flex-none" : "flex-1")} />
+        <div
+          className={cn(
+            "transition-all duration-700 ease-in-out",
+            scrolled ? "flex-[0.0001] max-w-0" : "flex-1 max-w-full",
+          )}
+        />
 
         {/* Left */}
         <Link
           href="/"
           className={cn(
-            "flex items-center overflow-hidden transition-all duration-500",
+            "flex items-center overflow-hidden transition-all duration-700 ease-in-out",
             scrolled ? "w-[110px] opacity-100" : "w-0 opacity-0 pointer-events-none",
           )}
         >
@@ -50,13 +55,15 @@ export function MarketplaceHeader() {
         {/* Center: search appears after scroll (desktop) */}
         <div
           className={cn(
-            "hidden justify-center md:flex transition-all duration-500",
-            scrolled ? "flex-1 opacity-100" : "w-0 flex-none opacity-0 overflow-hidden",
+            "hidden justify-center md:flex transition-all duration-700 ease-in-out",
+            scrolled
+              ? "flex-1 max-w-xl opacity-100"
+              : "flex-[0.0001] max-w-0 opacity-0 overflow-hidden",
           )}
         >
           <div
             className={[
-              "w-full max-w-xl transition-all duration-200",
+              "w-full transition-all duration-700 ease-in-out",
               scrolled
                 ? "opacity-100 translate-y-0"
                 : "pointer-events-none -translate-y-1 opacity-0",
@@ -107,8 +114,10 @@ export function MarketplaceHeader() {
 
           <Button
             className={[
-              "h-11 rounded-lg bg-[#F58318] px-5 font-semibold text-white shadow-sm hover:bg-[#F58318]/90 transition-all duration-300",
-              scrolled ? "scale-100 opacity-100 flex" : "scale-95 opacity-0 hidden",
+              "h-11 rounded-lg bg-[#F58318] px-5 font-semibold text-white shadow-sm hover:bg-[#F58318]/90 transition-all duration-700 ease-in-out",
+              scrolled
+                ? "scale-100 opacity-100 flex pointer-events-auto"
+                : "scale-95 opacity-0 flex pointer-events-none",
             ].join(" ")}
           >
             <Ticket className="mr-2 h-4 w-4" />
@@ -117,7 +126,12 @@ export function MarketplaceHeader() {
         </nav>
 
         {/* Spacer direito */}
-        <div className={cn("transition-all duration-500", scrolled ? "w-0 flex-none" : "flex-1")} />
+        <div
+          className={cn(
+            "transition-all duration-700 ease-in-out",
+            scrolled ? "flex-[0.0001] max-w-0" : "flex-1 max-w-full",
+          )}
+        />
       </div>
     </header>
   );
