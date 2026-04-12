@@ -269,85 +269,58 @@ export default function Home() {
                 Recomendados para você
               </h2>
 
-              <div className="relative mx-auto mt-4 h-[300px] w-full max-w-2xl">
-                <div className="absolute inset-0">
-                  {featured.map((event, index) => {
-                    const total = featured.length || 1;
-                    const offset = (index - activeIndex + total) % total;
+              <div className="relative mx-auto flex h-[250px] w-full max-w-5xl items-center justify-center overflow-hidden sm:h-[350px]">
+                {featured.map((event, index) => {
+                  const offset = index - activeIndex;
 
-                    const isCurrent = offset === 0;
-                    const isNext = offset === 1;
-                    const isNext2 = offset === 2;
+                  const cardClasses =
+                    offset === 0
+                      ? "z-30 scale-100 opacity-100 translate-x-0 cursor-default shadow-2xl"
+                      : offset === 1
+                        ? "z-20 scale-[0.85] opacity-60 translate-x-[65%] cursor-pointer shadow-lg hover:opacity-80"
+                        : offset === -1
+                          ? "z-20 scale-[0.85] opacity-60 -translate-x-[65%] cursor-pointer shadow-lg hover:opacity-80"
+                          : `z-10 scale-[0.75] opacity-0 pointer-events-none translate-x-[${
+                              offset > 0 ? "100%" : "-100%"
+                            }]`;
 
-                    const cardClasses = [
-                      "absolute inset-0",
-                      "transition-all duration-500 ease-in-out",
-                      "will-change-transform",
-                      isCurrent
-                        ? "z-30 scale-100 opacity-100 translate-x-0"
-                        : isNext
-                          ? "z-20 scale-95 opacity-80 translate-x-8"
-                          : isNext2
-                            ? "z-10 scale-90 opacity-40 translate-x-16"
-                            : "z-0 scale-90 opacity-0 translate-x-24 pointer-events-none",
-                    ].join(" ");
-
-                    return (
-                      <a
-                        key={`rec-${event.id}`}
-                        href="#"
-                        className={[
-                          cardClasses,
-                          "group overflow-hidden rounded-2xl bg-slate-200 ring-1 ring-border/60",
-                        ].join(" ")}
-                      >
-                        <Image
-                          src={event.image.src}
-                          alt={event.image.alt}
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 672px"
-                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                          priority={false}
-                        />
-                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.50),transparent_55%)]" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <div className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
-                            {event.title}
-                          </div>
-                          <div className="mt-1 text-xs text-white/85">
-                            {event.locationLabel}
-                          </div>
+                  return (
+                    <a
+                      key={`rec-${event.id}`}
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveIndex(index);
+                      }}
+                      className={[
+                        "absolute",
+                        "transition-all duration-500 ease-out",
+                        "w-[80%] max-w-[600px] h-full rounded-2xl overflow-hidden",
+                        "bg-slate-200 ring-1 ring-border/60",
+                        "group",
+                        cardClasses,
+                      ].join(" ")}
+                    >
+                      <Image
+                        src={event.image.src}
+                        alt={event.image.alt}
+                        fill
+                        sizes="(max-width: 1024px) 80vw, 600px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                        priority={false}
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.50),transparent_55%)]" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
+                          {event.title}
                         </div>
-                      </a>
-                    );
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  aria-label="Anterior"
-                  onClick={() =>
-                    setActiveIndex((i) =>
-                      featured.length ? (i - 1 + featured.length) % featured.length : 0,
-                    )
-                  }
-                  className="absolute left-2 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-sm ring-1 ring-border/60 backdrop-blur transition hover:bg-white"
-                >
-                  <ChevronDown className="h-5 w-5 rotate-90 text-slate-700" />
-                </button>
-
-                <button
-                  type="button"
-                  aria-label="Próximo"
-                  onClick={() =>
-                    setActiveIndex((i) =>
-                      featured.length ? (i + 1) % featured.length : 0,
-                    )
-                  }
-                  className="absolute right-2 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-sm ring-1 ring-border/60 backdrop-blur transition hover:bg-white"
-                >
-                  <ChevronDown className="h-5 w-5 -rotate-90 text-slate-700" />
-                </button>
+                        <div className="mt-1 text-xs text-white/85">
+                          {event.locationLabel}
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
               </div>
 
               {/* Categorias (discretas, abaixo do carrossel) */}
