@@ -161,6 +161,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [, setCategory] = useState<CategoryKey | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 64);
@@ -191,9 +192,9 @@ export default function Home() {
                   ? "opacity-0 -translate-y-8"
                   : "opacity-100 translate-y-0",
               ].join(" ")}
-              style={{ minHeight: 65 }}
+              style={{ minHeight: 84 }}
             >
-              <Image src="/logo1.svg" alt="Roletei" width={200} height={65} priority />
+              <Image src="/logo1.svg" alt="Roletei" width={260} height={84} priority />
             </div>
           </div>
 
@@ -268,34 +269,85 @@ export default function Home() {
                 Recomendados para você
               </h2>
 
-              <div className="mt-4 flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-6 sm:pb-3">
-                <div className="flex gap-4 sm:gap-6 max-sm:snap-x max-sm:snap-mandatory">
-                  {featured.map((event) => (
-                    <a
-                      key={`rec-${event.id}`}
-                      href="#"
-                      className="group relative h-[180px] w-[320px] shrink-0 overflow-hidden rounded-2xl bg-slate-200 ring-1 ring-border/60 sm:h-[220px] sm:w-[420px] max-sm:snap-center"
-                    >
-                      <Image
-                        src={event.image.src}
-                        alt={event.image.alt}
-                        fill
-                        sizes="(max-width: 640px) 320px, 420px"
-                        className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                        priority={false}
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.50),transparent_55%)]" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <div className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
-                          {event.title}
+              <div className="relative mx-auto mt-4 h-[300px] w-full max-w-2xl">
+                <div className="absolute inset-0">
+                  {featured.map((event, index) => {
+                    const total = featured.length || 1;
+                    const offset = (index - activeIndex + total) % total;
+
+                    const isCurrent = offset === 0;
+                    const isNext = offset === 1;
+                    const isNext2 = offset === 2;
+
+                    const cardClasses = [
+                      "absolute inset-0",
+                      "transition-all duration-500 ease-in-out",
+                      "will-change-transform",
+                      isCurrent
+                        ? "z-30 scale-100 opacity-100 translate-x-0"
+                        : isNext
+                          ? "z-20 scale-95 opacity-80 translate-x-8"
+                          : isNext2
+                            ? "z-10 scale-90 opacity-40 translate-x-16"
+                            : "z-0 scale-90 opacity-0 translate-x-24 pointer-events-none",
+                    ].join(" ");
+
+                    return (
+                      <a
+                        key={`rec-${event.id}`}
+                        href="#"
+                        className={[
+                          cardClasses,
+                          "group overflow-hidden rounded-2xl bg-slate-200 ring-1 ring-border/60",
+                        ].join(" ")}
+                      >
+                        <Image
+                          src={event.image.src}
+                          alt={event.image.alt}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 672px"
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                          priority={false}
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.50),transparent_55%)]" />
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                          <div className="line-clamp-2 text-sm font-semibold text-white sm:text-base">
+                            {event.title}
+                          </div>
+                          <div className="mt-1 text-xs text-white/85">
+                            {event.locationLabel}
+                          </div>
                         </div>
-                        <div className="mt-1 text-xs text-white/85">
-                          {event.locationLabel}
-                        </div>
-                      </div>
-                    </a>
-                  ))}
+                      </a>
+                    );
+                  })}
                 </div>
+
+                <button
+                  type="button"
+                  aria-label="Anterior"
+                  onClick={() =>
+                    setActiveIndex((i) =>
+                      featured.length ? (i - 1 + featured.length) % featured.length : 0,
+                    )
+                  }
+                  className="absolute left-2 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-sm ring-1 ring-border/60 backdrop-blur transition hover:bg-white"
+                >
+                  <ChevronDown className="h-5 w-5 rotate-90 text-slate-700" />
+                </button>
+
+                <button
+                  type="button"
+                  aria-label="Próximo"
+                  onClick={() =>
+                    setActiveIndex((i) =>
+                      featured.length ? (i + 1) % featured.length : 0,
+                    )
+                  }
+                  className="absolute right-2 top-1/2 z-40 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-sm ring-1 ring-border/60 backdrop-blur transition hover:bg-white"
+                >
+                  <ChevronDown className="h-5 w-5 -rotate-90 text-slate-700" />
+                </button>
               </div>
 
               {/* Categorias (discretas, abaixo do carrossel) */}
