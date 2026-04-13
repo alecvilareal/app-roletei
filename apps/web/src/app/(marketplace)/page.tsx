@@ -210,8 +210,8 @@ export default function Home() {
               <Image
                 src="/logo1.svg"
                 alt="Roletei"
-                width={320}
-                height={104}
+                width={360}
+                height={117}
                 priority
               />
             </div>

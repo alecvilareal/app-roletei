@@ -82,7 +82,7 @@ export function MarketplaceHeader() {
   return (
     <header
       className={[
-        "sticky top-0 z-30 transition-shadow duration-300",
+        "sticky top-0 z-[100] transition-shadow duration-300",
         scrolled ? "bg-white shadow-md" : "bg-transparent",
       ].join(" ")}
     >
