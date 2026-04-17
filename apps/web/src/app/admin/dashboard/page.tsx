@@ -66,7 +66,7 @@ function AdminSidebar({ items }: { items: NavItem[] }) {
 
       <div className="px-6 pb-6">
         <div className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-500 ring-1 ring-slate-200">
-          Clean Admin · destaque em <span className="text-[#F58318]">Laranja</span>
+          Clean Admin Dash · destaque em <span className="text-[#F58318]">Laranja</span>
         </div>
       </div>
     </aside>
