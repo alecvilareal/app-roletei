@@ -33,8 +33,8 @@ function StatsCard({
 
 export default function AdminDashboardPage() {
   return (
-    <div className="min-h-full bg-slate-50 px-4 py-8 md:px-6">
-      <div className="mx-auto w-full max-w-6xl">
+    <div className="min-h-full bg-slate-50 px-8 py-8 md:px-12">
+      <div className="mx-auto w-full max-w-none">
         <div className="mb-6">
           <h2 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
             Bem-vindo, Álec. O que vamos roletar hoje?
