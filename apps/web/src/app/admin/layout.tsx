@@ -86,6 +86,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }
 
+  const headerTitle = useMemo(() => {
+    if (pathname === "/admin/dashboard") return "Dashboard";
+    if (pathname === "/admin/events") return "Eventos";
+    if (pathname === "/admin/categories") return "Categorias";
+    if (pathname.startsWith("/admin/settings/users")) return "Usuários";
+    if (pathname.startsWith("/admin/settings")) return "Configurações";
+    return "Admin";
+  }, [pathname]);
+
   // Rota de login não deve ter shell admin
   if (isLoginRoute) return <>{children}</>;
 
@@ -105,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="flex flex-1 flex-col">
         <AdminHeader
-          title="Admin"
+          title={headerTitle}
           onLogout={handleLogout}
           isLoggingOut={isLoggingOut}
         />
