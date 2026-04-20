@@ -34,9 +34,33 @@ export function AdminSidebar({
     [],
   );
 
+  const cadastrosChildren = useMemo(
+    () => [
+      {
+        href: "/admin/cadastros/eventos",
+        label: "Eventos",
+      },
+      {
+        href: "/admin/cadastros/locais",
+        label: "Locais",
+      },
+      {
+        href: "/admin/cadastros/categorias",
+        label: "Categorias",
+      },
+    ],
+    [],
+  );
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(() => {
     return (
       pathname === "/admin/settings" || pathname.startsWith("/admin/settings/")
+    );
+  });
+
+  const [isCadastrosOpen, setIsCadastrosOpen] = useState(() => {
+    return (
+      pathname === "/admin/cadastros" || pathname.startsWith("/admin/cadastros/")
     );
   });
 
@@ -75,6 +99,7 @@ export function AdminSidebar({
       <nav className="flex flex-col gap-1 px-2 py-3">
         {items.map((item) => {
           const isSettings = item.href === "/admin/settings";
+          const isCadastros = item.href === "/admin/cadastros";
 
           if (isSettings) {
             const isParentActive =
@@ -122,6 +147,72 @@ export function AdminSidebar({
                   )}
                 >
                   {settingsChildren.map((child) => {
+                    const isActive = pathname === child.href;
+
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        className={cn(
+                          "flex items-center rounded-md px-3 py-1.5 text-[13px] text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900",
+                          isActive && "bg-slate-100 text-slate-900",
+                        )}
+                      >
+                        <span className="font-medium">{child.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          }
+
+          if (isCadastros) {
+            const isParentActive =
+              pathname === "/admin/cadastros" ||
+              pathname.startsWith("/admin/cadastros/");
+
+            return (
+              <div key={item.href} className="flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => setIsCadastrosOpen((v) => !v)}
+                  title={isCollapsed ? item.label : undefined}
+                  className={cn(
+                    "flex items-center rounded-md px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900",
+                    isCollapsed ? "justify-center" : "gap-3",
+                    isParentActive && "bg-slate-100 text-slate-900",
+                  )}
+                  aria-expanded={isCadastrosOpen}
+                  aria-controls="admin-cadastros-group"
+                >
+                  <span className="text-[#F58318]">{item.icon}</span>
+                  <span className={cn("font-medium", isCollapsed && "hidden")}>
+                    {item.label}
+                  </span>
+
+                  {isCollapsed ? null : (
+                    <span className="ml-auto text-slate-500">
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 transition-transform duration-200",
+                          isCadastrosOpen && "rotate-180",
+                        )}
+                      />
+                    </span>
+                  )}
+                </button>
+
+                <div
+                  id="admin-cadastros-group"
+                  className={cn(
+                    "mt-1 flex flex-col gap-1 overflow-hidden pl-2",
+                    isCadastrosOpen ? "max-h-40" : "max-h-0",
+                    "transition-[max-height] duration-300",
+                    isCollapsed && "hidden",
+                  )}
+                >
+                  {cadastrosChildren.map((child) => {
                     const isActive = pathname === child.href;
 
                     return (

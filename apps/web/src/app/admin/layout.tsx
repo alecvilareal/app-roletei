@@ -2,12 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import {
-  LayoutDashboard,
-  MonitorPlay,
-  Settings,
-  Tag,
-} from "lucide-react";
+import { Folder, LayoutDashboard, Settings } from "lucide-react";
 
 import { AdminHeader } from "@/components/admin/header";
 import { AdminSidebar, type AdminNavItem } from "@/components/admin/sidebar";
@@ -33,14 +28,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: <LayoutDashboard className="h-4 w-4" />,
     },
     {
-      href: "/admin/events",
-      label: "Eventos",
-      icon: <MonitorPlay className="h-4 w-4" />,
-    },
-    {
-      href: "/admin/categories",
-      label: "Categorias",
-      icon: <Tag className="h-4 w-4" />,
+      href: "/admin/cadastros",
+      label: "Cadastros",
+      icon: <Folder className="h-4 w-4" />,
     },
     {
       href: "/admin/settings",
@@ -88,8 +78,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const headerTitle = useMemo(() => {
     if (pathname === "/admin/dashboard") return "Dashboard";
-    if (pathname === "/admin/events") return "Eventos";
-    if (pathname === "/admin/categories") return "Categorias";
+    if (pathname.startsWith("/admin/cadastros/eventos")) return "Eventos";
+    if (pathname.startsWith("/admin/cadastros/locais")) return "Locais";
+    if (pathname.startsWith("/admin/cadastros/categorias")) return "Categorias";
+    if (pathname.startsWith("/admin/cadastros")) return "Cadastros";
     if (pathname.startsWith("/admin/settings/users")) return "Usuários";
     if (pathname.startsWith("/admin/settings")) return "Configurações";
     return "Admin";
