@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventsTabAtivos } from "@/features/admin-events/components/EventsTabAtivos";
 import { EventsTabEventos } from "@/features/admin-events/components/EventsTabEventos";
 import { EventsTabInativos } from "@/features/admin-events/components/EventsTabInativos";
+import { EventsTabScrapping } from "@/features/admin-events/components/EventsTabScrapping";
 import { EventsTabVisaoGeral } from "@/features/admin-events/components/EventsTabVisaoGeral";
 
 export default function AdminCadastrosEventosPage() {
@@ -16,6 +17,7 @@ export default function AdminCadastrosEventosPage() {
             <TabsTrigger value="eventos">Eventos</TabsTrigger>
             <TabsTrigger value="ativos">Eventos Ativos</TabsTrigger>
             <TabsTrigger value="inativos">Eventos Inativos</TabsTrigger>
+            <TabsTrigger value="scrapping">Scrapping</TabsTrigger>
           </TabsList>
 
           <TabsContent value="visao-geral" className="mt-6">
@@ -32,6 +34,10 @@ export default function AdminCadastrosEventosPage() {
 
           <TabsContent value="inativos" className="mt-6">
             <EventsTabInativos />
+          </TabsContent>
+
+          <TabsContent value="scrapping" className="mt-6">
+            <EventsTabScrapping />
           </TabsContent>
 
         </Tabs>

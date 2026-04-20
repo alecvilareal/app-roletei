@@ -2,9 +2,28 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 type EventRow = {
@@ -25,9 +44,14 @@ function formatDateTime(iso: string) {
 }
 
 export function EventsTabEventos() {
+  const router = useRouter();
+
   const [events, setEvents] = React.useState<EventRow[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const [eventToDelete, setEventToDelete] = React.useState<EventRow | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   async function loadRecentEvents() {
     setLoading(true);
@@ -49,6 +73,27 @@ export function EventsTabEventos() {
       setError(e instanceof Error ? e.message : "Erro ao carregar eventos.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function deleteEventById(id: string) {
+    setDeleting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/admin/events/${id}`, { method: "DELETE" });
+
+      if (!res.ok) {
+        const details = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(details?.error ?? "Não foi possível excluir o evento.");
+      }
+
+      setEvents((prev) => prev.filter((ev) => ev.id !== id));
+      setEventToDelete(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao excluir evento.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -109,14 +154,54 @@ export function EventsTabEventos() {
                       </div>
                     </div>
 
-                    <div className="mt-2 text-xs text-slate-600 sm:mt-0 sm:text-right">
+                    <div className="mt-2 flex items-start justify-between gap-3 text-xs text-slate-600 sm:mt-0 sm:justify-end sm:text-right">
                       <div>
-                        Criado em:{" "}
-                        <span className="font-medium">{formatDateTime(ev.created_at)}</span>
+                        <div>
+                          Criado em:{" "}
+                          <span className="font-medium">{formatDateTime(ev.created_at)}</span>
+                        </div>
+                        <div>
+                          Início:{" "}
+                          <span className="font-medium">{formatDateTime(ev.starts_at)}</span>
+                        </div>
                       </div>
-                      <div>
-                        Início: <span className="font-medium">{formatDateTime(ev.starts_at)}</span>
-                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label={`Ações do evento ${ev.title}`}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onSelect={(e) => {
+                              e.preventDefault();
+                              router.push(`/admin/cadastros/eventos/${ev.id}/editar`);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600"
+                            onSelect={(e) => {
+                              e.preventDefault();
+                              setEventToDelete(ev);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 
@@ -139,6 +224,35 @@ export function EventsTabEventos() {
         </div>
       </Card>
 
+      <AlertDialog open={!!eventToDelete} onOpenChange={(open) => (!open ? setEventToDelete(null) : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir evento</AlertDialogTitle>
+            <AlertDialogDescription>
+              {eventToDelete ? (
+                <>
+                  Tem certeza que deseja excluir <span className="font-medium">{eventToDelete.title}</span>?
+                  Essa ação não pode ser desfeita.
+                </>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!eventToDelete || deleting}
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={(e) => {
+                e.preventDefault();
+                if (eventToDelete) void deleteEventById(eventToDelete.id);
+              }}
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -30,6 +30,10 @@ export function AdminSidebar({
         href: "/admin/settings/users",
         label: "Usuários",
       },
+      {
+        href: "/admin/settings/eventos",
+        label: "Config. Eventos",
+      },
     ],
     [],
   );
