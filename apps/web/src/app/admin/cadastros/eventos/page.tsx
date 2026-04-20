@@ -1,6 +1,10 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventsTabAtivos } from "@/features/admin-events/components/EventsTabAtivos";
+import { EventsTabCadastrar } from "@/features/admin-events/components/EventsTabCadastrar";
+import { EventsTabInativos } from "@/features/admin-events/components/EventsTabInativos";
+import { EventsTabVisaoGeral } from "@/features/admin-events/components/EventsTabVisaoGeral";
 
 export default function AdminCadastrosEventosPage() {
   return (
@@ -15,45 +19,19 @@ export default function AdminCadastrosEventosPage() {
           </TabsList>
 
           <TabsContent value="visao-geral" className="mt-6">
-            <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
-              <h1 className="text-xl font-semibold text-slate-900">
-                Visão Geral
-              </h1>
-              <p className="mt-2 text-sm text-slate-600">
-                Resumo/indicadores de eventos (placeholder).
-              </p>
-            </div>
+            <EventsTabVisaoGeral />
           </TabsContent>
 
           <TabsContent value="ativos" className="mt-6">
-            <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">
-                Eventos Ativos
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Lista de eventos ativos (placeholder).
-              </p>
-            </div>
+            <EventsTabAtivos />
           </TabsContent>
 
           <TabsContent value="inativos" className="mt-6">
-            <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">
-                Eventos Inativos
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Lista de eventos inativos (placeholder).
-              </p>
-            </div>
+            <EventsTabInativos />
           </TabsContent>
 
           <TabsContent value="cadastrar" className="mt-6">
-            <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">Cadastrar</h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Formulário para criar evento (placeholder).
-              </p>
-            </div>
+            <EventsTabCadastrar />
           </TabsContent>
         </Tabs>
       </div>
