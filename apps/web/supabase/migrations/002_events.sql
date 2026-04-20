@@ -30,12 +30,12 @@ create table if not exists public.events (
 -- 2) Habilitar RLS
 alter table public.events enable row level security;
 
--- 3) Policy: qualquer usuário autenticado pode ler eventos ativos
+-- 3) Policy: leitura pública de eventos ativos (sem precisar login)
 drop policy if exists "events_read_active" on public.events;
 create policy "events_read_active"
 on public.events
 for select
-to authenticated
+to anon, authenticated
 using (is_active = true);
 
 -- 4) Policy admin: usuário com role 'cao_chupando_manga' pode fazer tudo

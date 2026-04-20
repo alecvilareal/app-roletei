@@ -16,7 +16,7 @@ drop policy if exists "category_groups_read" on public.category_groups;
 create policy "category_groups_read"
 on public.category_groups
 for select
-to authenticated
+to anon, authenticated
 using (true);
 
 drop policy if exists "category_groups_admin_all" on public.category_groups;
@@ -56,7 +56,7 @@ drop policy if exists "categories_read" on public.categories;
 create policy "categories_read"
 on public.categories
 for select
-to authenticated
+to anon, authenticated
 using (true);
 
 drop policy if exists "categories_admin_all" on public.categories;

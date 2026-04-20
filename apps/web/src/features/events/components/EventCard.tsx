@@ -26,10 +26,10 @@ type Props = {
 
 export function EventCard({ event }: Props) {
   return (
-    <Card className="group overflow-hidden rounded-2xl border border-slate-100 bg-card shadow-md transition-all duration-300 hover:border-slate-200 hover:shadow-xl">
+    <Card className="group overflow-hidden rounded-2xl border border-slate-100 bg-card pt-0 shadow-md transition-all duration-300 hover:border-slate-200 hover:shadow-xl">
       {/* Imagem */}
       <div className="relative overflow-hidden rounded-t-2xl">
-        <AspectRatio ratio={16 / 9}>
+        <AspectRatio ratio={16 / 9} className="block leading-none">
           <Image
             src={event.image.src}
             alt={event.image.alt}
