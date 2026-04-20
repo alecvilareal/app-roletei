@@ -93,6 +93,10 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const status = (searchParams.get("status") ?? "active").toLowerCase();
+  const sort = (searchParams.get("sort") ?? "starts_at").toLowerCase();
+  const limitRaw = searchParams.get("limit");
+  const limit =
+    limitRaw && Number.isFinite(Number(limitRaw)) ? Math.max(1, Math.min(50, Number(limitRaw))) : null;
 
   let isActive: boolean | null = true;
   if (status === "active" || status === "ativos") isActive = true;
@@ -100,12 +104,17 @@ export async function GET(req: NextRequest) {
   else if (status === "all" || status === "todos") isActive = null;
   else return jsonError(400, "Parâmetro inválido: status (use active/inactive/all).");
 
+  const sortColumn = sort === "created_at" ? "created_at" : "starts_at";
+  const sortAscending = sortColumn === "starts_at";
+
   let query = authCheck.supabase
     .from("events")
     .select(
       "id, title, location_name, location_address, starts_at, ends_at, is_active, created_at",
     )
-    .order("starts_at", { ascending: true });
+    .order(sortColumn, { ascending: sortAscending });
+
+  if (limit) query = query.limit(limit);
 
   if (isActive !== null) {
     query = query.eq("is_active", isActive);
