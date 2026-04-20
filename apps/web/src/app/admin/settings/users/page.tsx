@@ -89,11 +89,13 @@ function UserDialog({
   onOpenChange,
   mode,
   onCreated,
+  user,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: UserDialogMode;
   onCreated: () => Promise<void>;
+  user?: AdminUser | null;
 }) {
   const title = mode === "create" ? "Novo Usuário" : "Editar Usuário";
   const description =
@@ -111,12 +113,21 @@ function UserDialog({
 
   React.useEffect(() => {
     if (!open) return;
+    setSubmitError(null);
+
+    if (mode === "edit" && user) {
+      setFullName(user.full_name ?? "");
+      setEmail(user.email ?? "");
+      setCreationMode("password");
+      setPassword("");
+      return;
+    }
+
     setFullName("");
     setEmail("");
     setCreationMode("password");
     setPassword("");
-    setSubmitError(null);
-  }, [open]);
+  }, [open, mode, user]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -130,23 +141,32 @@ function UserDialog({
       setSubmitError("Informe o e-mail.");
       return;
     }
-    if (creationMode === "password" && !password.trim()) {
+    if (mode === "create" && creationMode === "password" && !password.trim()) {
       setSubmitError("Informe uma senha temporária.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          full_name: fullName.trim(),
-          email: email.trim(),
-          creation_mode: creationMode,
-          password: creationMode === "password" ? password : undefined,
-        }),
-      });
+      const res =
+        mode === "create"
+          ? await fetch("/api/admin/users", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                full_name: fullName.trim(),
+                email: email.trim(),
+                creation_mode: creationMode,
+                password: creationMode === "password" ? password : undefined,
+              }),
+            })
+          : await fetch(`/api/admin/users/${user?.id ?? ""}`, {
+              method: "PATCH",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                full_name: fullName.trim(),
+              }),
+            });
 
       if (!res.ok) {
         let details: unknown = null;
@@ -159,7 +179,9 @@ function UserDialog({
         const message =
           typeof (details as { error?: unknown } | null)?.error === "string"
             ? (details as { error: string }).error
-            : "Não foi possível criar o usuário.";
+            : mode === "create"
+              ? "Não foi possível criar o usuário."
+              : "Não foi possível atualizar o usuário.";
 
         setSubmitError(message);
         return;
@@ -170,8 +192,8 @@ function UserDialog({
     } catch (err) {
       setSubmitError(
         err instanceof Error
-          ? `Erro ao criar usuário: ${err.message}`
-          : "Erro ao criar usuário.",
+          ? `Erro ao ${mode === "create" ? "criar" : "atualizar"} usuário: ${err.message}`
+          : `Erro ao ${mode === "create" ? "criar" : "atualizar"} usuário.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -215,6 +237,7 @@ function UserDialog({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="border-slate-200 focus-visible:ring-[#F58318]"
+                disabled={mode === "edit"}
               />
             </div>
 
@@ -311,9 +334,11 @@ function UserDialog({
 function UsersTable({
   users,
   onDelete,
+  onEdit,
 }: {
   users: AdminUser[];
   onDelete: (user: AdminUser) => void;
+  onEdit: (user: AdminUser) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">
@@ -365,7 +390,7 @@ function UsersTable({
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={() => {}}>
+                      <DropdownMenuItem onSelect={() => onEdit(u)}>
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -390,6 +415,8 @@ function UsersTable({
 export default function AdminUsersPage() {
   const [query, setQuery] = React.useState("");
   const [createOpen, setCreateOpen] = React.useState(false);
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [editUser, setEditUser] = React.useState<AdminUser | null>(null);
 
   const { users, isLoading, error, refetch } = useAdminUsers();
 
@@ -496,6 +523,10 @@ export default function AdminUsersPage() {
                     setDeleteError(null);
                     setDeleteOpen(true);
                   }}
+                  onEdit={(u) => {
+                    setEditUser(u);
+                    setEditOpen(true);
+                  }}
                 />
               )}
             </div>
@@ -563,6 +594,17 @@ export default function AdminUsersPage() {
         onOpenChange={(open) => setCreateOpen(open)}
         mode="create"
         onCreated={refetch}
+      />
+
+      <UserDialog
+        open={editOpen}
+        onOpenChange={(open) => {
+          setEditOpen(open);
+          if (!open) setEditUser(null);
+        }}
+        mode="edit"
+        onCreated={refetch}
+        user={editUser}
       />
     </div>
   );
