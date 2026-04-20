@@ -41,16 +41,20 @@ export function AdminSidebar({
   const cadastrosChildren = useMemo(
     () => [
       {
+        href: "/admin/cadastros/roles-e-eventos",
+        label: "Rolês e Eventos",
+      },
+      {
+        href: "/admin/cadastros/categorias-organizacao",
+        label: "Categorias e Organização",
+      },
+      {
         href: "/admin/cadastros/eventos",
         label: "Eventos",
       },
       {
         href: "/admin/cadastros/locais",
         label: "Locais",
-      },
-      {
-        href: "/admin/cadastros/artistas",
-        label: "Artistas / Pessoas",
       },
       {
         href: "/admin/cadastros/categorias",
@@ -149,7 +153,7 @@ export function AdminSidebar({
                   id="admin-settings-group"
                   className={cn(
                     "mt-1 flex flex-col gap-1 overflow-hidden pl-2",
-                    isSettingsOpen ? "max-h-40" : "max-h-0",
+                    isSettingsOpen ? "max-h-[999px]" : "max-h-0",
                     "transition-[max-height] duration-300",
                     isCollapsed && "hidden",
                   )}
@@ -215,7 +219,7 @@ export function AdminSidebar({
                   id="admin-cadastros-group"
                   className={cn(
                     "mt-1 flex flex-col gap-1 overflow-hidden pl-2",
-                    isCadastrosOpen ? "max-h-40" : "max-h-0",
+                    isCadastrosOpen ? "max-h-[999px]" : "max-h-0",
                     "transition-[max-height] duration-300",
                     isCollapsed && "hidden",
                   )}
