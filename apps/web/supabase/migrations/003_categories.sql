@@ -33,6 +33,11 @@ before update on public.category_groups
 for each row
 execute function public.set_updated_at();
 
+-- Grupos fixos (não devem ser excluídos/renomeados pela aplicação)
+insert into public.category_groups (name)
+values ('Tipo Evento'), ('Entrada')
+on conflict (name) do nothing;
+
 -- 2) Categorias
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),

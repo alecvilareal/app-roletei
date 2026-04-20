@@ -5,7 +5,6 @@ import * as React from "react";
 import { MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -21,6 +20,12 @@ type CategoryGroupRow = {
   id: string;
   name: string;
 };
+
+const FIXED_GROUP_NAMES = new Set(["Tipo Evento", "Entrada"]);
+
+function isFixedGroupName(name: string) {
+  return FIXED_GROUP_NAMES.has(name.trim());
+}
 
 type CategoryRow = {
   id: string;
@@ -370,6 +375,7 @@ export default function AdminCadastrosCategoriasPage() {
                         {groups.map((g) => {
                           const catsCount = categories.filter((c) => c.group_id === g.id).length;
                           const isActive = g.id === activeGroupId;
+                          const isFixed = isFixedGroupName(g.name);
 
                           return (
                             <li key={g.id} className="group relative">
@@ -396,52 +402,56 @@ export default function AdminCadastrosCategoriasPage() {
                                 </div>
                               </button>
 
-                              <div className="absolute right-1 top-1/2 -translate-y-1/2">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <button
-                                      type="button"
-                                      className={[
-                                        "inline-flex h-8 w-8 items-center justify-center rounded-md",
-                                        isActive
-                                          ? "text-white/80 hover:bg-white/10 hover:text-white"
-                                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
-                                      ].join(" ")}
-                                      title="Ações do grupo"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <MoreVertical className="h-4 w-4" />
-                                    </button>
-                                  </DropdownMenuTrigger>
+                              {isFixed ? null : (
+                                <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className={[
+                                          "inline-flex h-8 w-8 items-center justify-center rounded-md",
+                                          isActive
+                                            ? "text-white/80 hover:bg-white/10 hover:text-white"
+                                            : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+                                        ].join(" ")}
+                                        title="Ações do grupo"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <MoreVertical className="h-4 w-4" />
+                                      </button>
+                                    </DropdownMenuTrigger>
 
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onSelect={(e) => {
-                                        e.preventDefault();
-                                        setError(null);
-                                        setSuccess(null);
-                                        setEditingGroupId(g.id);
-                                        setEditingGroupName(g.name);
-                                      }}
-                                    >
-                                      <Pencil className="mr-2 h-4 w-4" />
-                                      Editar
-                                    </DropdownMenuItem>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem
+                                        onSelect={(e) => {
+                                          e.preventDefault();
+                                          setError(null);
+                                          setSuccess(null);
+                                          setEditingGroupId(g.id);
+                                          setEditingGroupName(g.name);
+                                        }}
+                                      >
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Editar
+                                      </DropdownMenuItem>
 
-                                    <DropdownMenuItem
-                                      disabled={catsCount > 0}
-                                      onSelect={(e) => {
-                                        e.preventDefault();
-                                        handleDeleteGroup(g.id);
-                                      }}
-                                      className={catsCount > 0 ? "" : "text-red-600 focus:text-red-600"}
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Excluir
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
+                                      <DropdownMenuItem
+                                        disabled={catsCount > 0}
+                                        onSelect={(e) => {
+                                          e.preventDefault();
+                                          handleDeleteGroup(g.id);
+                                        }}
+                                        className={
+                                          catsCount > 0 ? "" : "text-red-600 focus:text-red-600"
+                                        }
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Excluir
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              )}
                             </li>
                           );
                         })}
@@ -587,7 +597,10 @@ export default function AdminCadastrosCategoriasPage() {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={editingGroupId !== null} onOpenChange={(open) => (!open ? setEditingGroupId(null) : null)}>
+        <Dialog
+          open={editingGroupId !== null}
+          onOpenChange={(open) => (!open ? setEditingGroupId(null) : null)}
+        >
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Editar grupo</DialogTitle>
@@ -601,6 +614,7 @@ export default function AdminCadastrosCategoriasPage() {
                   value={editingGroupName}
                   onChange={(e) => setEditingGroupName(e.target.value)}
                   placeholder="Ex: Eventos"
+                  disabled={isFixedGroupName(editingGroupName)}
                 />
               </div>
 
@@ -612,7 +626,11 @@ export default function AdminCadastrosCategoriasPage() {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" className="bg-[#F58318] text-white hover:bg-[#F58318]/90">
+                <Button
+                  type="submit"
+                  className="bg-[#F58318] text-white hover:bg-[#F58318]/90"
+                  disabled={isFixedGroupName(editingGroupName)}
+                >
                   Salvar
                 </Button>
               </div>

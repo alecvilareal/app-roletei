@@ -6,6 +6,12 @@ type PostBody = {
   name: string;
 };
 
+const FIXED_GROUP_NAMES = new Set(["Tipo Evento", "Entrada"]);
+
+function isFixedGroupName(name: string) {
+  return FIXED_GROUP_NAMES.has(name.trim());
+}
+
 function jsonError(status: number, message: string, details?: unknown) {
   return NextResponse.json({ error: message, details: details ?? null }, { status });
 }
@@ -123,6 +129,25 @@ export async function PUT(req: NextRequest) {
     return jsonError(400, "Parâmetro obrigatório inválido: id.");
   }
 
+  // Impedir renomear grupos fixos
+  const { data: currentGroup, error: currentGroupError } = await authCheck.supabase
+    .from("category_groups")
+    .select("id, name")
+    .eq("id", id.trim())
+    .maybeSingle<{ id: string; name: string }>();
+
+  if (currentGroupError) {
+    return jsonError(500, "Erro ao consultar o grupo.", currentGroupError.message);
+  }
+
+  if (!currentGroup) {
+    return jsonError(404, "Grupo não encontrado.");
+  }
+
+  if (isFixedGroupName(currentGroup.name)) {
+    return jsonError(403, "Não é permitido editar o nome deste grupo fixo.");
+  }
+
   let body: PostBody | null = null;
   try {
     body = (await req.json()) as PostBody;
@@ -159,6 +184,25 @@ export async function DELETE(req: NextRequest) {
 
   if (!isNonEmptyString(id)) {
     return jsonError(400, "Parâmetro obrigatório inválido: id.");
+  }
+
+  // Impedir exclusão de grupos fixos
+  const { data: currentGroup, error: currentGroupError } = await authCheck.supabase
+    .from("category_groups")
+    .select("id, name")
+    .eq("id", id.trim())
+    .maybeSingle<{ id: string; name: string }>();
+
+  if (currentGroupError) {
+    return jsonError(500, "Erro ao consultar o grupo.", currentGroupError.message);
+  }
+
+  if (!currentGroup) {
+    return jsonError(404, "Grupo não encontrado.");
+  }
+
+  if (isFixedGroupName(currentGroup.name)) {
+    return jsonError(403, "Não é permitido excluir este grupo fixo.");
   }
 
   // Bloquear exclusão se existir categoria no grupo
