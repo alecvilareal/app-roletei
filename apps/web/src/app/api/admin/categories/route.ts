@@ -116,6 +116,44 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data, { status: 201 });
 }
 
+export async function PUT(req: NextRequest) {
+  const authCheck = await assertAdminRole();
+  if (!authCheck.ok) return authCheck.response;
+
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+
+  if (!isNonEmptyString(id)) {
+    return jsonError(400, "Parâmetro obrigatório inválido: id.");
+  }
+
+  let body: Partial<PostBody> | null = null;
+  try {
+    body = (await req.json()) as Partial<PostBody>;
+  } catch {
+    return jsonError(400, "JSON inválido no corpo da requisição.");
+  }
+
+  const { name } = body ?? {};
+
+  if (!isNonEmptyString(name)) {
+    return jsonError(400, "Campo obrigatório inválido: name.");
+  }
+
+  const { data, error } = await authCheck.supabase
+    .from("categories")
+    .update({ name: name.trim() })
+    .eq("id", id.trim())
+    .select("id, group_id, name, created_at, updated_at")
+    .single();
+
+  if (error) {
+    return jsonError(500, "Não foi possível atualizar a categoria.", error.message);
+  }
+
+  return NextResponse.json(data, { status: 200 });
+}
+
 export async function DELETE(req: NextRequest) {
   const authCheck = await assertAdminRole();
   if (!authCheck.ok) return authCheck.response;
