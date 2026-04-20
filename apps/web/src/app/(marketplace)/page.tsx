@@ -35,82 +35,58 @@ const CATEGORY_ITEMS: Array<{
   { key: "esportes", label: "Esportes", Icon: Dumbbell },
 ];
 
-type Filter = (typeof EVENTS)[number]["category"] | "Tudo";
+type Filter = Event["category"] | "Tudo";
 
-const EVENTS: Event[] = [
-  {
-    id: "1",
-    title: "Baile do Viaduto — Edição Sextou",
-    locationLabel: "Viaduto Santa Tereza • Belo Horizonte",
-    dateChip: { day: "11", month: "ABR" },
-    category: "Festas",
+type ApiEvent = {
+  id: string;
+  title: string;
+  description: string | null;
+  banner_url: string | null;
+  location_name: string;
+  location_address: string;
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+function monthAbbrPtBR(monthIndex0: number) {
+  const months = [
+    "JAN",
+    "FEV",
+    "MAR",
+    "ABR",
+    "MAI",
+    "JUN",
+    "JUL",
+    "AGO",
+    "SET",
+    "OUT",
+    "NOV",
+    "DEZ",
+  ];
+  return months[monthIndex0] ?? "";
+}
+
+function mapApiEventToCard(ev: ApiEvent): Event {
+  const start = new Date(ev.starts_at);
+
+  return {
+    id: ev.id,
+    title: ev.title,
+    locationLabel: `${ev.location_name} • ${ev.location_address}`,
+    dateChip: {
+      day: String(start.getDate()).padStart(2, "0"),
+      month: monthAbbrPtBR(start.getMonth()),
+    },
+    category: "Shows",
     priceLabel: "Grátis",
     image: {
-      src: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=1200&q=80",
-      alt: "Pista de dança com luzes",
+      src: ev.banner_url?.trim() || "/logo2.svg",
+      alt: ev.title,
     },
-  },
-  {
-    id: "2",
-    title: "Festival de Cervejas Artesanais — Mercado Novo",
-    locationLabel: "Mercado Novo • Belo Horizonte",
-    dateChip: { day: "12", month: "ABR" },
-    category: "Gastronomia",
-    priceLabel: "A partir de R$ 25,00",
-    image: {
-      src: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1200&q=80",
-      alt: "Copos de cerveja artesanal",
-    },
-  },
-  {
-    id: "3",
-    title: "Show Indie no A Obra — Bandas Locais",
-    locationLabel: "A Obra • Savassi • Belo Horizonte",
-    dateChip: { day: "12", month: "ABR" },
-    category: "Shows",
-    priceLabel: "A partir de R$ 40,00",
-    image: {
-      src: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80",
-      alt: "Palco com show ao vivo",
-    },
-  },
-  {
-    id: "4",
-    title: "Cine ao Ar Livre na Praça — Clássicos Mineiros",
-    locationLabel: "Praça da Liberdade • Belo Horizonte",
-    dateChip: { day: "13", month: "ABR" },
-    category: "Teatro",
-    priceLabel: "Grátis",
-    image: {
-      src: "https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1200&q=80",
-      alt: "Cinema ao ar livre",
-    },
-  },
-  {
-    id: "5",
-    title: "Brunch & Vinil — Café com DJ",
-    locationLabel: "Pop-up no Centro • Belo Horizonte",
-    dateChip: { day: "13", month: "ABR" },
-    category: "Gastronomia",
-    priceLabel: "A partir de R$ 55,00",
-    image: {
-      src: "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=1200&q=80",
-      alt: "Mesa de brunch",
-    },
-  },
-  {
-    id: "6",
-    title: "Noite de Pagode — Quintal do Chalé",
-    locationLabel: "Quintal do Chalé • Serra • BH",
-    dateChip: { day: "17", month: "ABR" },
-    category: "Shows",
-    priceLabel: "A partir de R$ 35,00",
-    image: {
-      src: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1200&q=80",
-      alt: "Show com músicos no palco",
-    },
-  },
-];
+  };
+}
 
 function filterEvents(events: Event[], filter: Filter, query: string) {
   const q = query.trim().toLowerCase();
@@ -166,6 +142,34 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      setEventsLoading(true);
+      try {
+        const res = await fetch("/api/events?limit=50", { method: "GET" });
+        if (!res.ok) throw new Error("Falha ao carregar eventos.");
+        const data = (await res.json()) as ApiEvent[];
+        const mapped = Array.isArray(data) ? data.map(mapApiEventToCard) : [];
+        if (!ignore) setEvents(mapped);
+      } catch {
+        if (!ignore) setEvents([]);
+      } finally {
+        if (!ignore) setEventsLoading(false);
+      }
+    }
+
+    load();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 64);
     onScroll();
@@ -174,8 +178,8 @@ export default function Home() {
   }, []);
 
   const filtered = useMemo(
-    () => filterEvents(EVENTS, selectedFilter, query),
-    [selectedFilter, query],
+    () => filterEvents(events, selectedFilter, query),
+    [events, selectedFilter, query],
   );
 
   const featured = filtered.slice(0, 6);
@@ -289,113 +293,117 @@ export default function Home() {
               </h2>
 
               <div className="relative mx-auto mt-0 flex h-[260px] w-full max-w-[1400px] items-center justify-center overflow-visible sm:h-[400px]">
-                {featured.map((event, index) => {
-                  const len = featured.length;
-                  const rawOffset = index - activeIndex;
-                  // Lógica para encontrar o caminho mais curto no círculo
-                  let offset = (rawOffset + Math.floor(len / 2)) % len;
-                  if (offset < 0) offset += len;
-                  offset -= Math.floor(len / 2);
+                {eventsLoading ? (
+                  <div className="text-sm text-slate-600">Carregando eventos...</div>
+                ) : (
+                  featured.map((event, index) => {
+                    const len = featured.length;
+                    const rawOffset = index - activeIndex;
+                    // Lógica para encontrar o caminho mais curto no círculo
+                    let offset = (rawOffset + Math.floor(len / 2)) % len;
+                    if (offset < 0) offset += len;
+                    offset -= Math.floor(len / 2);
 
-                  const isCenter = offset === 0;
-                  const isLayer1 = Math.abs(offset) === 1;
-                  const isLayer2 = Math.abs(offset) === 2;
-                  const isHidden = !isCenter && !isLayer1 && !isLayer2;
+                    const isCenter = offset === 0;
+                    const isLayer1 = Math.abs(offset) === 1;
+                    const isLayer2 = Math.abs(offset) === 2;
+                    const isHidden = !isCenter && !isLayer1 && !isLayer2;
 
-                  let translate = "translate-x-0";
-                  let scale = "scale-100";
-                  let zIndex = "z-40";
-                  let opacity = "opacity-100";
+                    let translate = "translate-x-0";
+                    let scale = "scale-100";
+                    let zIndex = "z-40";
+                    let opacity = "opacity-100";
 
-                  let overlayOpacity = "opacity-0";
+                    let overlayOpacity = "opacity-0";
 
-                  if (offset === -1) {
-                    translate = "-translate-x-[55%]";
-                    scale = "scale-[0.85]";
-                    zIndex = "z-30";
-                    overlayOpacity = "opacity-40";
-                  } else if (offset === 1) {
-                    translate = "translate-x-[55%]";
-                    scale = "scale-[0.85]";
-                    zIndex = "z-30";
-                    overlayOpacity = "opacity-40";
-                  } else if (offset === -2) {
-                    translate = "-translate-x-[95%]";
-                    scale = "scale-[0.70]";
-                    zIndex = "z-20";
-                    overlayOpacity = "opacity-75";
-                  } else if (offset === 2) {
-                    translate = "translate-x-[95%]";
-                    scale = "scale-[0.70]";
-                    zIndex = "z-20";
-                    overlayOpacity = "opacity-75";
-                  } else if (isHidden) {
-                    scale = "scale-75";
-                    zIndex = "z-10";
-                    opacity = "opacity-0 pointer-events-none";
-                    overlayOpacity = "opacity-0";
-                  }
+                    if (offset === -1) {
+                      translate = "-translate-x-[55%]";
+                      scale = "scale-[0.85]";
+                      zIndex = "z-30";
+                      overlayOpacity = "opacity-40";
+                    } else if (offset === 1) {
+                      translate = "translate-x-[55%]";
+                      scale = "scale-[0.85]";
+                      zIndex = "z-30";
+                      overlayOpacity = "opacity-40";
+                    } else if (offset === -2) {
+                      translate = "-translate-x-[95%]";
+                      scale = "scale-[0.70]";
+                      zIndex = "z-20";
+                      overlayOpacity = "opacity-75";
+                    } else if (offset === 2) {
+                      translate = "translate-x-[95%]";
+                      scale = "scale-[0.70]";
+                      zIndex = "z-20";
+                      overlayOpacity = "opacity-75";
+                    } else if (isHidden) {
+                      scale = "scale-75";
+                      zIndex = "z-10";
+                      opacity = "opacity-0 pointer-events-none";
+                      overlayOpacity = "opacity-0";
+                    }
 
-                  return (
-                    <a
-                      key={`rec-${event.id}`}
-                      href="#"
-                      onClick={(e) => {
-                        if (!isCenter) {
-                          e.preventDefault();
-                          setActiveIndex(index);
-                        }
-                      }}
-                      className={cn(
-                        "absolute transition-all duration-500 ease-out",
-                        "h-[220px] w-[300px] sm:h-[320px] sm:w-[500px] overflow-hidden rounded-2xl bg-slate-900 shadow-2xl",
-                        translate,
-                        scale,
-                        zIndex,
-                        opacity,
-                        !isCenter && "cursor-pointer",
-                      )}
-                    >
-                      <Image
-                        src={event.image.src}
-                        alt={event.image.alt}
-                        fill
-                        sizes="(max-width: 640px) 300px, 500px"
+                    return (
+                      <a
+                        key={`rec-${event.id}`}
+                        href="#"
+                        onClick={(e) => {
+                          if (!isCenter) {
+                            e.preventDefault();
+                            setActiveIndex(index);
+                          }
+                        }}
                         className={cn(
-                          "object-cover transition-transform duration-500",
-                          isCenter && "group-hover:scale-[1.03]",
-                          !isCenter && "blur-[2px]",
-                        )}
-                        priority={isCenter}
-                      />
-                      <div
-                        className={cn(
-                          "pointer-events-none absolute inset-0 bg-white transition-opacity duration-500",
-                          overlayOpacity,
-                        )}
-                      />
-                      <div
-                        className={cn(
-                          "pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.80),transparent_50%)] transition-opacity duration-500",
-                          offset === 0 ? "opacity-100" : "opacity-0",
-                        )}
-                      />
-                      <div
-                        className={cn(
-                          "absolute bottom-0 left-0 right-0 p-5 sm:p-6 transition-opacity duration-500",
-                          offset === 0 ? "opacity-100" : "opacity-0",
+                          "absolute transition-all duration-500 ease-out",
+                          "h-[220px] w-[300px] sm:h-[320px] sm:w-[500px] overflow-hidden rounded-2xl bg-slate-900 shadow-2xl",
+                          translate,
+                          scale,
+                          zIndex,
+                          opacity,
+                          !isCenter && "cursor-pointer",
                         )}
                       >
-                        <div className="line-clamp-2 text-base font-bold text-white sm:text-xl drop-shadow-md">
-                          {event.title}
+                        <Image
+                          src={event.image.src}
+                          alt={event.image.alt}
+                          fill
+                          sizes="(max-width: 640px) 300px, 500px"
+                          className={cn(
+                            "object-cover transition-transform duration-500",
+                            isCenter && "group-hover:scale-[1.03]",
+                            !isCenter && "blur-[2px]",
+                          )}
+                          priority={isCenter}
+                        />
+                        <div
+                          className={cn(
+                            "pointer-events-none absolute inset-0 bg-white transition-opacity duration-500",
+                            overlayOpacity,
+                          )}
+                        />
+                        <div
+                          className={cn(
+                            "pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.80),transparent_50%)] transition-opacity duration-500",
+                            offset === 0 ? "opacity-100" : "opacity-0",
+                          )}
+                        />
+                        <div
+                          className={cn(
+                            "absolute bottom-0 left-0 right-0 p-5 sm:p-6 transition-opacity duration-500",
+                            offset === 0 ? "opacity-100" : "opacity-0",
+                          )}
+                        >
+                          <div className="line-clamp-2 text-base font-bold text-white sm:text-xl drop-shadow-md">
+                            {event.title}
+                          </div>
+                          <div className="mt-2 text-xs font-medium text-white/90 sm:text-sm drop-shadow">
+                            {event.locationLabel}
+                          </div>
                         </div>
-                        <div className="mt-2 text-xs font-medium text-white/90 sm:text-sm drop-shadow">
-                          {event.locationLabel}
-                        </div>
-                      </div>
-                    </a>
-                  );
-                })}
+                      </a>
+                    );
+                  })
+                )}
 
                 <button
                   type="button"
