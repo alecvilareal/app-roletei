@@ -13,6 +13,8 @@ type PostBody = {
 
   tickets_url?: string | null;
 
+  entry_category_id?: string | null;
+
   starts_at: string; // ISO
   ends_at: string; // ISO
 };
@@ -147,6 +149,7 @@ export async function POST(req: NextRequest) {
     location_name,
     location_address,
     tickets_url,
+    entry_category_id,
     starts_at,
     ends_at,
   } = body ?? ({} as PostBody);
@@ -187,6 +190,7 @@ export async function POST(req: NextRequest) {
       location_name: location_name.trim(),
       location_address: location_address.trim(),
       tickets_url: typeof tickets_url === "string" ? tickets_url.trim() : null,
+      entry_category_id: typeof entry_category_id === "string" ? entry_category_id : null,
       starts_at: startDate.toISOString(),
       ends_at: endDate.toISOString(),
     })

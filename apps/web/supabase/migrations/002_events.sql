@@ -15,6 +15,9 @@ create table if not exists public.events (
 
   tickets_url text,
 
+  -- Categoria "Entrada" (public.categories, group "Entrada")
+  entry_category_id uuid references public.categories (id) on delete set null,
+
   starts_at timestamptz not null,
   ends_at timestamptz not null,
 
