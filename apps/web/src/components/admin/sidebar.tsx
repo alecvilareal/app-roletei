@@ -45,6 +45,10 @@ export function AdminSidebar({
         label: "Locais",
       },
       {
+        href: "/admin/cadastros/artistas",
+        label: "Artistas / Pessoas",
+      },
+      {
         href: "/admin/cadastros/categorias",
         label: "Categorias",
       },

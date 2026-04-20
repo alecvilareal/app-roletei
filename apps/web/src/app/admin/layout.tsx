@@ -80,6 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (pathname === "/admin/dashboard") return "Dashboard";
     if (pathname.startsWith("/admin/cadastros/eventos")) return "Eventos";
     if (pathname.startsWith("/admin/cadastros/locais")) return "Locais";
+    if (pathname.startsWith("/admin/cadastros/artistas")) return "Artistas / Pessoas";
     if (pathname.startsWith("/admin/cadastros/categorias")) return "Categorias";
     if (pathname.startsWith("/admin/cadastros")) return "Cadastros";
     if (pathname.startsWith("/admin/settings/users")) return "Usuários";
