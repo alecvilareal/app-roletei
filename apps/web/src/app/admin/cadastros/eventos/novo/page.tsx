@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -234,32 +234,36 @@ export default function AdminCadastrosEventosNovoPage() {
   }
 
   return (
-    <div className="min-h-full bg-slate-50 px-8 py-8 md:px-12">
-      <div className="mx-auto w-full max-w-none">
-        <div className="rounded-lg bg-white p-6 shadow-sm ring-1 ring-slate-200">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-slate-900">Cadastrar evento</h1>
-              <p className="mt-1 text-sm text-slate-600">
-                Preencha os dados para criar um novo evento.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/admin/cadastros/eventos")}
-            >
-              Voltar
-            </Button>
+    <div className="min-h-full bg-slate-50 px-4 py-10 sm:px-6 md:px-12">
+      <div className="mx-auto w-full max-w-6xl">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-900">Cadastrar evento</h1>
+            <p className="mt-1 text-sm text-slate-600">Preencha os dados para criar um novo evento.</p>
           </div>
 
-          <div className="mt-6">
-            <form onSubmit={handleCreate} className="grid gap-6">
-              <Card className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="grid gap-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push("/admin/cadastros/eventos")}
+            className="w-full sm:w-auto"
+          >
+            Voltar
+          </Button>
+        </div>
+
+        <form onSubmit={handleCreate} className="mt-8 grid gap-8">
+          {/* 1º Card - Informações gerais */}
+          <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="text-base text-slate-900">Informações gerais</CardTitle>
+              <CardDescription>Identificação do evento e banner de destaque.</CardDescription>
+            </CardHeader>
+
+            <div className="grid gap-6 p-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-2">
                   <Label htmlFor="title" className="font-medium text-slate-700">
                     Título
                   </Label>
@@ -268,36 +272,71 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ex: Show da banda X"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="banner_url" className="font-medium text-slate-700">
-                        URL do banner
-                      </Label>
-                      <Input
-                        id="banner_url"
-                        value={bannerUrl}
-                        onChange={(e) => setBannerUrl(e.target.value)}
-                        placeholder="https://..."
-                        className="border-slate-200 focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-                  </div>
-
-              {bannerUrl.trim() ? (
                 <div className="grid gap-2">
-                  <div className="text-sm font-medium text-slate-700">Prévia do banner</div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={bannerUrl}
-                    alt="Prévia do banner"
-                    className="max-h-56 w-full rounded-md border border-slate-200 object-cover"
+                  <Label htmlFor="banner_url" className="font-medium text-slate-700">
+                    URL do banner
+                  </Label>
+                  <Input
+                    id="banner_url"
+                    value={bannerUrl}
+                    onChange={(e) => setBannerUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
-              ) : null}
+              </div>
 
+              <div className="grid gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-slate-700">Prévia do banner</div>
+                  <div className="text-xs text-slate-500">Recomendado 16:6</div>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
+                  <div className="aspect-[16/6] w-full">
+                    {bannerUrl.trim() ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={bannerUrl}
+                        alt="Prévia do banner"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="relative h-full w-full">
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+                        <div className="absolute inset-0 opacity-[0.25] [background-image:radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px]" />
+                        <div className="relative flex h-full w-full items-center justify-center px-8 text-center">
+                          <div className="max-w-md">
+                            <div className="text-sm font-semibold text-slate-800">Prévia do banner</div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              Cole uma URL válida acima para visualizar a imagem.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-500">
+                  Dica: prefira uma imagem com boa iluminação e alta resolução.
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* 2º Card - Data e horário (Premium) */}
+          <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="text-base text-slate-900">Data e horário (Premium)</CardTitle>
+              <CardDescription>Defina início e, se necessário, o término.</CardDescription>
+            </CardHeader>
+
+            <div className="grid gap-6 p-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="start_date" className="font-medium text-slate-700">
@@ -308,7 +347,7 @@ export default function AdminCadastrosEventosNovoPage() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
 
@@ -321,31 +360,52 @@ export default function AdminCadastrosEventosNovoPage() {
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-                <input
-                  id="has_end_datetime"
-                  type="checkbox"
-                  className="mt-1"
-                  checked={hasEndDateTime}
-                  onChange={(e) => setHasEndDateTime(e.target.checked)}
-                />
+              <label
+                htmlFor="has_end_datetime"
+                className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-sm transition-colors hover:bg-slate-50/80"
+              >
                 <div className="grid gap-1">
-                  <Label htmlFor="has_end_datetime" className="font-medium text-slate-700">
+                  <div className="text-sm font-semibold text-slate-900">
                     Inserir data e hora do término
-                  </Label>
+                  </div>
                   <div className="text-xs text-slate-600">
                     Se desmarcado, o término será igual ao início (pode ser ajustado depois).
                   </div>
                 </div>
-              </div>
+
+                <div className="pt-0.5">
+                  <span
+                    className={[
+                      "relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors",
+                      hasEndDateTime
+                        ? "border-[#F58318]/40 bg-[#F58318]/90"
+                        : "border-slate-300 bg-white",
+                    ].join(" ")}
+                  >
+                    <input
+                      id="has_end_datetime"
+                      type="checkbox"
+                      className="sr-only"
+                      checked={hasEndDateTime}
+                      onChange={(e) => setHasEndDateTime(e.target.checked)}
+                    />
+                    <span
+                      className={[
+                        "pointer-events-none inline-block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow-sm transition-transform",
+                        hasEndDateTime ? "translate-x-5" : "translate-x-0.5",
+                      ].join(" ")}
+                    />
+                  </span>
+                </div>
+              </label>
 
               {hasEndDateTime ? (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="end_date" className="font-medium text-slate-700">
                       Data término
@@ -355,7 +415,7 @@ export default function AdminCadastrosEventosNovoPage() {
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="border-slate-200 focus-visible:ring-[#F58318]"
+                      className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                     />
                   </div>
 
@@ -368,12 +428,22 @@ export default function AdminCadastrosEventosNovoPage() {
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className="border-slate-200 focus-visible:ring-[#F58318]"
+                      className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                     />
                   </div>
                 </div>
               ) : null}
+            </div>
+          </Card>
 
+          {/* 3º Card - Localização */}
+          <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="text-base text-slate-900">Localização</CardTitle>
+              <CardDescription>Informe o local e o endereço do evento.</CardDescription>
+            </CardHeader>
+
+            <div className="grid gap-6 p-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="location_name" className="font-medium text-slate-700">
@@ -384,7 +454,7 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={locationName}
                     onChange={(e) => setLocationName(e.target.value)}
                     placeholder="Ex: Arena Roletei"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
 
@@ -392,29 +462,32 @@ export default function AdminCadastrosEventosNovoPage() {
                   <Label htmlFor="cep" className="font-medium text-slate-700">
                     CEP
                   </Label>
-                  <div className="flex gap-2">
+
+                  <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
                     <Input
                       id="cep"
                       value={cep}
                       onChange={(e) => setCep(e.target.value)}
                       placeholder="00000-000"
-                      className="border-slate-200 focus-visible:ring-[#F58318]"
+                      className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => void handleFetchCep()}
                       disabled={isFetchingCep}
+                      className="w-full border-slate-200 bg-white shadow-sm sm:w-auto"
                     >
                       {isFetchingCep ? "Buscando..." : "Buscar"}
                     </Button>
                   </div>
+
                   {cepError ? <div className="text-xs text-red-700">{cepError}</div> : null}
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
+              <div className="grid gap-4 md:grid-cols-6">
+                <div className="grid gap-2 md:col-span-4">
                   <Label htmlFor="street" className="font-medium text-slate-700">
                     Rua / Logradouro
                   </Label>
@@ -423,11 +496,11 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={street}
                     onChange={(e) => setStreet(e.target.value)}
                     placeholder="Ex: Av. Paulista"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-2 md:col-span-2">
                   <Label htmlFor="number" className="font-medium text-slate-700">
                     Número
                   </Label>
@@ -436,13 +509,13 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
                     placeholder="Ex: 1000"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
+              <div className="grid gap-4 md:grid-cols-6">
+                <div className="grid gap-2 md:col-span-3">
                   <Label htmlFor="neighborhood" className="font-medium text-slate-700">
                     Bairro
                   </Label>
@@ -451,11 +524,11 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={neighborhood}
                     onChange={(e) => setNeighborhood(e.target.value)}
                     placeholder="Ex: Bela Vista"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid gap-2 md:col-span-2">
                   <Label htmlFor="city" className="font-medium text-slate-700">
                     Cidade
                   </Label>
@@ -464,13 +537,11 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="Ex: São Paulo"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
                 </div>
-              </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
+                <div className="grid gap-2 md:col-span-1">
                   <Label htmlFor="state" className="font-medium text-slate-700">
                     Estado (UF)
                   </Label>
@@ -479,25 +550,48 @@ export default function AdminCadastrosEventosNovoPage() {
                     value={state}
                     onChange={(e) => setState(e.target.value)}
                     placeholder="Ex: SP"
-                    className="border-slate-200 focus-visible:ring-[#F58318]"
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                     maxLength={2}
                   />
                 </div>
               </div>
+            </div>
+          </Card>
 
-              <div className="grid gap-2">
-                <Label htmlFor="description" className="font-medium text-slate-700">
-                  Descrição
-                </Label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Descrição do evento..."
-                  className="min-h-28 w-full resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F58318]"
-                />
+          {/* 4º Card - Descrição do evento (full-width) */}
+          <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="text-base text-slate-900">Descrição do evento</CardTitle>
+              <CardDescription>
+                Dê contexto para o público: atrações, detalhes e informações importantes.
+              </CardDescription>
+            </CardHeader>
+
+            <div className="grid gap-3 p-6">
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Escreva a descrição do evento..."
+                className="min-h-[320px] w-full resize-y rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F58318]"
+              />
+              <div className="flex flex-col gap-1 text-xs text-slate-500">
+                <div>
+                  Dica: comece com o essencial (o que é, onde, quando) e depois complemente com detalhes.
+                </div>
+                <div>Você pode revisar este texto depois.</div>
               </div>
+            </div>
+          </Card>
 
+          {/* 5º Card - Ingressos e acesso */}
+          <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="text-base text-slate-900">Ingressos e acesso</CardTitle>
+              <CardDescription>Como o público acessa e qual a categoria de entrada.</CardDescription>
+            </CardHeader>
+
+            <div className="grid gap-6 p-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="entry_category" className="font-medium text-slate-700">
@@ -537,50 +631,49 @@ export default function AdminCadastrosEventosNovoPage() {
                 </div>
               </div>
 
-                  {accessType !== "aberto" ? (
-                    <div className="grid gap-2">
-                      <Label htmlFor="access_url" className="font-medium text-slate-700">
-                        URL (ingresso / lista)
-                      </Label>
-                      <Input
-                        id="access_url"
-                        value={accessUrl}
-                        onChange={(e) => setAccessUrl(e.target.value)}
-                        placeholder="https://..."
-                        className="border-slate-200 focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-                  ) : null}
-                </div>
-              </Card>
-
-              {submitError ? (
-                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {submitError}
+              {accessType !== "aberto" ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="access_url" className="font-medium text-slate-700">
+                    URL (ingresso / lista)
+                  </Label>
+                  <Input
+                    id="access_url"
+                    value={accessUrl}
+                    onChange={(e) => setAccessUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
+                  />
                 </div>
               ) : null}
+            </div>
+          </Card>
 
-              <div className="flex items-center justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/admin/cadastros/eventos")}
-                  disabled={isSubmitting}
-                >
-                  Cancelar
-                </Button>
+          {submitError ? (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {submitError}
+            </div>
+          ) : null}
 
-                <Button
-                  type="submit"
-                  className="bg-[#F58318] text-white hover:bg-[#F58318]/90"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Salvando..." : "Salvar Evento"}
-                </Button>
-              </div>
-            </form>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push("/admin/cadastros/eventos")}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              type="submit"
+              className="w-full bg-[#F58318] text-white hover:bg-[#F58318]/90 sm:w-auto"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Salvando..." : "Salvar Evento"}
+            </Button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
