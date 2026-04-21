@@ -45,12 +45,16 @@ export function AdminSidebar({
         label: "Eventos",
       },
       {
-        href: "/admin/cadastros/locais",
-        label: "Locais",
+        href: "/admin/cadastros/roles-e-eventos",
+        label: "Rolês e Eventos",
       },
       {
-        href: "/admin/cadastros/categorias",
-        label: "Categorias",
+        href: "/admin/cadastros/categorias-e-tags",
+        label: "Categorias e Tags",
+      },
+      {
+        href: "/admin/cadastros/localizacoes",
+        label: "Localizações",
       },
     ],
     [],

@@ -6,7 +6,7 @@ type PostBody = {
   name: string;
 };
 
-const FIXED_GROUP_NAMES = new Set(["Tipo Evento", "Entrada"]);
+const FIXED_GROUP_NAMES = new Set(["Estilo Musical"]);
 
 function isFixedGroupName(name: string) {
   return FIXED_GROUP_NAMES.has(name.trim());
@@ -129,7 +129,6 @@ export async function PUT(req: NextRequest) {
     return jsonError(400, "Parâmetro obrigatório inválido: id.");
   }
 
-  // Impedir renomear grupos fixos
   const { data: currentGroup, error: currentGroupError } = await authCheck.supabase
     .from("category_groups")
     .select("id, name")
@@ -186,7 +185,6 @@ export async function DELETE(req: NextRequest) {
     return jsonError(400, "Parâmetro obrigatório inválido: id.");
   }
 
-  // Impedir exclusão de grupos fixos
   const { data: currentGroup, error: currentGroupError } = await authCheck.supabase
     .from("category_groups")
     .select("id, name")

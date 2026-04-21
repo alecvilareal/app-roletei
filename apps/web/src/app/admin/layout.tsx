@@ -79,11 +79,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const headerTitle = useMemo(() => {
     if (pathname === "/admin/dashboard") return "Dashboard";
     if (pathname.startsWith("/admin/cadastros/eventos")) return "Eventos";
-    if (pathname.startsWith("/admin/cadastros/locais")) return "Locais";
+    if (pathname.startsWith("/admin/cadastros/categorias-e-tags"))
+      return "Categorias e Tags";
+    if (pathname.startsWith("/admin/cadastros/localizacoes")) return "Localizações";
     if (pathname.startsWith("/admin/cadastros/roles-e-eventos")) return "Rolês e Eventos";
     if (pathname.startsWith("/admin/cadastros/categorias-organizacao"))
       return "Categorias e Organização";
-    if (pathname.startsWith("/admin/cadastros/categorias")) return "Categorias";
     if (pathname.startsWith("/admin/cadastros")) return "Cadastros";
     if (pathname.startsWith("/admin/settings/users")) return "Usuários";
     if (pathname.startsWith("/admin/settings/eventos")) return "Config. Eventos";
