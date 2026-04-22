@@ -18,7 +18,7 @@ type PostBody = {
   music_style_category_ids?: string[];
 
   starts_at: string; // ISO
-  ends_at: string; // ISO
+  ends_at?: string | null; // ISO | null (quando não informado)
 
   // valor/preço
   price_mode?: "free" | "paid" | "custom";
@@ -213,20 +213,22 @@ export async function POST(req: NextRequest) {
   if (!isNonEmptyString(title)) return jsonError(400, "Campo obrigatório inválido: title.");
   if (!isNonEmptyString(starts_at))
     return jsonError(400, "Campo obrigatório inválido: starts_at.");
-  if (!isNonEmptyString(ends_at)) return jsonError(400, "Campo obrigatório inválido: ends_at.");
 
   if (!isValidUrlOrEmpty(banner_url))
     return jsonError(400, "Campo inválido: banner_url (precisa ser uma URL válida).");
-  const startDate = new Date(starts_at);
-  const endDate = new Date(ends_at);
 
+  const startDate = new Date(starts_at);
   if (Number.isNaN(startDate.getTime())) {
     return jsonError(400, "Campo inválido: starts_at (use uma data/hora válida).");
   }
-  if (Number.isNaN(endDate.getTime())) {
+
+  const hasEnd = isNonEmptyString(ends_at);
+  const endDate = hasEnd ? new Date(ends_at) : null;
+
+  if (hasEnd && endDate && Number.isNaN(endDate.getTime())) {
     return jsonError(400, "Campo inválido: ends_at (use uma data/hora válida).");
   }
-  if (endDate.getTime() <= startDate.getTime()) {
+  if (hasEnd && endDate && endDate.getTime() <= startDate.getTime()) {
     return jsonError(400, "Campo inválido: ends_at deve ser maior que starts_at.");
   }
 
@@ -294,7 +296,7 @@ export async function POST(req: NextRequest) {
       location_name: resolvedLocationName.trim(),
       location_address: resolvedLocationAddress.trim(),
       starts_at: startDate.toISOString(),
-      ends_at: endDate.toISOString(),
+      ends_at: endDate ? endDate.toISOString() : null,
 
       price_mode: normalizedPriceMode,
 

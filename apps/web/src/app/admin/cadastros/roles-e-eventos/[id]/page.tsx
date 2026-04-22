@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,22 +26,60 @@ function placeToLabel(p: PlaceOption) {
   return `${p.name} — ${p.cidade}/${p.uf}`;
 }
 
-type CreateEventPayload = {
+type AdminEventDetails = {
+  id: string;
+  title: string;
+  banner_url?: string | null;
+
+  place_id?: string | null;
+
+  location_name?: string | null;
+  location_address?: string | null;
+
+  music_style_category_ids?: string[];
+
+  starts_at: string;
+  ends_at: string | null;
+
+  price_mode: "free" | "paid" | "custom";
+
+  free_access_type?: "none" | "list" | "ticket" | null;
+  free_access_link?: string | null;
+
+  paid_type?: "couvert" | "ticket" | "entry" | null;
+  is_couvert_optional?: boolean | null;
+  paid_by_gender?: boolean | null;
+  paid_value_cents?: number | null;
+  paid_female_value_cents?: number | null;
+  paid_male_value_cents?: number | null;
+  paid_link?: string | null;
+
+  custom_mode_type?: "entry" | "ticket" | null;
+  custom_until_time?: string | null;
+  custom_until_kind?: "free" | "value" | null;
+  custom_until_by_gender?: boolean | null;
+  custom_until_value_cents?: number | null;
+  custom_until_female_value_cents?: number | null;
+  custom_until_male_value_cents?: number | null;
+  custom_after_by_gender?: boolean | null;
+  custom_after_value_cents?: number | null;
+  custom_after_female_value_cents?: number | null;
+  custom_after_male_value_cents?: number | null;
+  custom_link?: string | null;
+};
+
+type UpdateEventPayload = {
   title: string;
 
   banner_url?: string | null;
 
   place_id?: string | null;
 
-  // fallback/manual (quando place_id não é enviado)
-  location_name?: string;
-  location_address?: string;
-
   // categorias (public.categories) do group "Estilo Musical"
   music_style_category_ids?: string[];
 
   starts_at: string; // ISO
-  ends_at?: string | null; // ISO | null (quando não informado)
+  ends_at: string | null; // ISO | null
 
   // valor/preço
   price_mode: "free" | "paid" | "custom";
@@ -74,73 +112,58 @@ type CreateEventPayload = {
   custom_link?: string | null;
 };
 
-function formatCurrencyBRLFromDigits(digits: string) {
-  const onlyDigits = digits.replace(/\D/g, "");
-  const value = Number(onlyDigits || "0") / 100;
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function toDateInput(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function toTimeInput(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function formatCurrencyBRLFromCents(cents: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    (cents ?? 0) / 100,
+  );
 }
 
 function currencyDigitsFromInput(raw: string) {
   return raw.replace(/\D/g, "");
 }
 
-async function fetchAddressByCep(rawCep: string) {
-  const cepDigits = rawCep.replace(/\D/g, "");
-  if (cepDigits.length !== 8) throw new Error("CEP inválido. Use 8 dígitos (ex: 01001000).");
-
-  const res = await fetch(`https://viacep.com.br/ws/${cepDigits}/json/`, { method: "GET" });
-  if (!res.ok) throw new Error("Não foi possível consultar o CEP.");
-
-  const data = (await res.json()) as {
-    erro?: boolean;
-    logradouro?: string;
-    bairro?: string;
-    localidade?: string;
-    uf?: string;
-  };
-
-  if (data?.erro) throw new Error("CEP não encontrado.");
-
-  return {
-    street: (data.logradouro ?? "").trim(),
-    neighborhood: (data.bairro ?? "").trim(),
-    city: (data.localidade ?? "").trim(),
-    state: (data.uf ?? "").trim(),
-  };
-}
-
-export default function AdminCadastrosRolesEEventosNovoPage() {
+export default function AdminCadastrosRolesEEventosEditPage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const eventId = params?.id;
 
+  const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
+
+  // campos principais
   const [title, setTitle] = React.useState("");
   const [bannerUrl, setBannerUrl] = React.useState("");
 
+  // estilos musicais
   const [musicStyles, setMusicStyles] = React.useState<MusicStyleOption[]>([]);
   const [selectedMusicStyleIds, setSelectedMusicStyleIds] = React.useState<string[]>([]);
   const [musicStylesError, setMusicStylesError] = React.useState<string | null>(null);
 
-  const [startDate, setStartDate] = React.useState(() => {
-    const d = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  });
-  const [startTime, setStartTime] = React.useState(() => {
-    const d = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  });
-
+  // datas
+  const [startDate, setStartDate] = React.useState("");
+  const [startTime, setStartTime] = React.useState("");
   const [hasEndDateTime, setHasEndDateTime] = React.useState(false);
-  const [endDate, setEndDate] = React.useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  });
-  const [endTime, setEndTime] = React.useState("00:00");
+  const [endDate, setEndDate] = React.useState("");
+  const [endTime, setEndTime] = React.useState("");
 
+  // locais (por enquanto só suporta selecionar place existente, como o endpoint admin lista)
   const [places, setPlaces] = React.useState<PlaceOption[]>([]);
-  const [placeMode, setPlaceMode] = React.useState<"existing" | "new">("existing");
   const [selectedPlaceId, setSelectedPlaceId] = React.useState<string>("");
 
   const [placeSearch, setPlaceSearch] = React.useState("");
@@ -177,19 +200,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
     });
   }, [placeSearch, places]);
 
-  const [locationName, setLocationName] = React.useState("");
-  const [cep, setCep] = React.useState("");
-
-  const [street, setStreet] = React.useState("");
-  const [number, setNumber] = React.useState("");
-  const [complement, setComplement] = React.useState("");
-  const [neighborhood, setNeighborhood] = React.useState("");
-  const [city, setCity] = React.useState("");
-  const [state, setState] = React.useState("");
-
-  const [isFetchingCep, setIsFetchingCep] = React.useState(false);
-  const [cepError, setCepError] = React.useState<string | null>(null);
-
+  // preço
   const [priceMode, setPriceMode] = React.useState<"paid" | "free" | "custom">("free");
 
   const [freeAccessType, setFreeAccessType] = React.useState<"none" | "list" | "ticket">("none");
@@ -199,6 +210,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
   const [paidByGender, setPaidByGender] = React.useState(false);
   const [isCouvertOptional, setIsCouvertOptional] = React.useState(false);
 
+  // armazenar "digits" (centavos) como no create
   const [paidValue, setPaidValue] = React.useState("");
   const [paidFemaleValue, setPaidFemaleValue] = React.useState("");
   const [paidMaleValue, setPaidMaleValue] = React.useState("");
@@ -264,109 +276,119 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
       const data = (await res.json()) as PlaceOption[];
       const next = Array.isArray(data) ? data : [];
       setPlaces(next);
-
-      if (!selectedPlaceId && next.length > 0) {
-        setSelectedPlaceId(next[0].id);
-      }
     } catch {
       // silencioso
     }
   }
 
-  async function createPlaceFromForm() {
-    const cepDigits = cep.replace(/\D/g, "");
+  async function loadEvent() {
+    if (!eventId) return;
 
-    const payload = {
-      name: locationName.trim(),
-      cep: cepDigits,
-      logradouro: street.trim(),
-      numero: number.trim(),
-      complemento: complement.trim() ? complement.trim() : null,
-      bairro: neighborhood.trim(),
-      cidade: city.trim(),
-      uf: state.trim().toUpperCase(),
-    };
+    setLoading(true);
+    setLoadError(null);
 
-    const res = await fetch("/api/admin/places", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(`/api/admin/events/${eventId}`, { method: "GET" });
+      if (!res.ok) {
+        const details = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(details?.error ?? "Não foi possível carregar o evento.");
+      }
 
-    if (!res.ok) {
-      const details = (await res.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(details?.error ?? "Não foi possível cadastrar a localização.");
+      const ev = (await res.json()) as AdminEventDetails;
+
+      setTitle(ev.title ?? "");
+      setBannerUrl(ev.banner_url ?? "");
+
+      setSelectedMusicStyleIds(Array.isArray(ev.music_style_category_ids) ? ev.music_style_category_ids : []);
+
+      setStartDate(toDateInput(ev.starts_at));
+      setStartTime(toTimeInput(ev.starts_at));
+
+      const hasEnd = Boolean(ev.ends_at);
+
+      const endDateStr = ev.ends_at ? toDateInput(ev.ends_at) : "";
+      const endTimeStr = ev.ends_at ? toTimeInput(ev.ends_at) : "";
+
+      setHasEndDateTime(hasEnd);
+      setEndDate(endDateStr);
+      setEndTime(endTimeStr);
+
+      setSelectedPlaceId(ev.place_id ?? "");
+
+      setPriceMode(ev.price_mode ?? "free");
+
+      setFreeAccessType((ev.free_access_type as "none" | "list" | "ticket" | null) ?? "none");
+      setFreeAccessLink(ev.free_access_link ?? "");
+
+      setPaidType((ev.paid_type as "couvert" | "ticket" | "entry" | null) ?? "couvert");
+      setPaidByGender(Boolean(ev.paid_by_gender));
+      setIsCouvertOptional(Boolean(ev.is_couvert_optional));
+
+      setPaidValue(ev.paid_value_cents ? String(ev.paid_value_cents) : "");
+      setPaidFemaleValue(ev.paid_female_value_cents ? String(ev.paid_female_value_cents) : "");
+      setPaidMaleValue(ev.paid_male_value_cents ? String(ev.paid_male_value_cents) : "");
+      setPaidLink(ev.paid_link ?? "");
+
+      setCustomModeType((ev.custom_mode_type as "entry" | "ticket" | null) ?? "entry");
+      setCustomUntilTime(ev.custom_until_time ?? "00:00");
+      setCustomUntilKind((ev.custom_until_kind as "free" | "value" | null) ?? "free");
+      setCustomUntilByGender(Boolean(ev.custom_until_by_gender));
+      setCustomUntilValue(ev.custom_until_value_cents ? String(ev.custom_until_value_cents) : "");
+      setCustomUntilFemaleValue(ev.custom_until_female_value_cents ? String(ev.custom_until_female_value_cents) : "");
+      setCustomUntilMaleValue(ev.custom_until_male_value_cents ? String(ev.custom_until_male_value_cents) : "");
+
+      setCustomAfterByGender(Boolean(ev.custom_after_by_gender));
+      setCustomAfterValue(ev.custom_after_value_cents ? String(ev.custom_after_value_cents) : "");
+      setCustomAfterFemaleValue(ev.custom_after_female_value_cents ? String(ev.custom_after_female_value_cents) : "");
+      setCustomAfterMaleValue(ev.custom_after_male_value_cents ? String(ev.custom_after_male_value_cents) : "");
+
+      setCustomModeLink(ev.custom_link ?? "");
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Erro ao carregar evento.");
+    } finally {
+      setLoading(false);
     }
-
-    const created = (await res.json()) as PlaceOption;
-    setPlaces((prev) => [created, ...prev]);
-    setSelectedPlaceId(created.id);
-    setPlaceMode("existing");
-    return created;
   }
 
   React.useEffect(() => {
     void loadMusicStyles();
     void loadPlaces();
+    void loadEvent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [eventId]);
 
-  async function handleCreate(e: React.FormEvent) {
+  React.useEffect(() => {
+    if (!selectedPlaceId) return;
+    const p = places.find((x) => x.id === selectedPlaceId);
+    if (p) setPlaceSearch(placeToLabel(p));
+  }, [places, selectedPlaceId]);
+
+  async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
+    if (!eventId) return;
+
     setSubmitError(null);
 
     if (!title.trim()) return setSubmitError("Informe o título.");
     if (!startDate.trim()) return setSubmitError("Informe a data de início.");
     if (!startTime.trim()) return setSubmitError("Informe a hora de início.");
-
-    // opcionais: banner_url, estilo musical e data/hora de término (controlado por hasEndDateTime)
+    if (!selectedPlaceId) return setSubmitError("Selecione uma localização cadastrada.");
 
     if (hasEndDateTime) {
       if (!endDate.trim()) return setSubmitError("Informe a data de término.");
       if (!endTime.trim()) return setSubmitError("Informe a hora de término.");
     }
 
-    if (placeMode === "existing") {
-      if (!selectedPlaceId) return setSubmitError("Selecione uma localização cadastrada.");
-    } else {
-      if (!locationName.trim()) return setSubmitError("Informe o nome do local.");
-      if (!street.trim()) return setSubmitError("Informe a rua/logradouro.");
-      if (!number.trim()) return setSubmitError("Informe o número.");
-      if (!neighborhood.trim()) return setSubmitError("Informe o bairro.");
-      if (!city.trim()) return setSubmitError("Informe a cidade.");
-      if (!state.trim()) return setSubmitError("Informe o estado.");
-    }
-
     const startsAtIso = new Date(`${startDate}T${startTime}:00`).toISOString();
 
     const endsAtIso = hasEndDateTime ? new Date(`${endDate}T${endTime}:00`).toISOString() : null;
 
-    let placeIdToUse: string | null = null;
-
-    if (placeMode === "existing") {
-      placeIdToUse = selectedPlaceId;
-    } else {
-      const createdPlace = await createPlaceFromForm();
-      placeIdToUse = createdPlace.id;
-    }
-
-    const paidValueCents = paidValue ? Number(paidValue) : 0;
-    const paidFemaleValueCents = paidFemaleValue ? Number(paidFemaleValue) : 0;
-    const paidMaleValueCents = paidMaleValue ? Number(paidMaleValue) : 0;
-
-    const customUntilValueCents = customUntilValue ? Number(customUntilValue) : 0;
-    const customUntilFemaleValueCents = customUntilFemaleValue ? Number(customUntilFemaleValue) : 0;
-    const customUntilMaleValueCents = customUntilMaleValue ? Number(customUntilMaleValue) : 0;
-
-    const customAfterValueCents = customAfterValue ? Number(customAfterValue) : 0;
-    const customAfterFemaleValueCents = customAfterFemaleValue ? Number(customAfterFemaleValue) : 0;
-    const customAfterMaleValueCents = customAfterMaleValue ? Number(customAfterMaleValue) : 0;
-
-    const payload: CreateEventPayload = {
+    const payload: UpdateEventPayload = {
       title: title.trim(),
       banner_url: bannerUrl.trim() ? bannerUrl.trim() : null,
-      place_id: placeIdToUse,
+      place_id: selectedPlaceId,
       music_style_category_ids: selectedMusicStyleIds,
+
       starts_at: startsAtIso,
       ends_at: endsAtIso,
 
@@ -378,36 +400,36 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
       paid_type: paidType,
       is_couvert_optional: isCouvertOptional,
       paid_by_gender: paidByGender,
-      paid_value_cents: paidValueCents ? paidValueCents : null,
-      paid_female_value_cents: paidFemaleValueCents ? paidFemaleValueCents : null,
-      paid_male_value_cents: paidMaleValueCents ? paidMaleValueCents : null,
+      paid_value_cents: paidValue ? Number(paidValue) : null,
+      paid_female_value_cents: paidFemaleValue ? Number(paidFemaleValue) : null,
+      paid_male_value_cents: paidMaleValue ? Number(paidMaleValue) : null,
       paid_link: paidLink.trim() ? paidLink.trim() : null,
 
       custom_mode_type: customModeType,
       custom_until_time: customUntilTime,
       custom_until_kind: customUntilKind,
       custom_until_by_gender: customUntilByGender,
-      custom_until_value_cents: customUntilValueCents ? customUntilValueCents : null,
-      custom_until_female_value_cents: customUntilFemaleValueCents ? customUntilFemaleValueCents : null,
-      custom_until_male_value_cents: customUntilMaleValueCents ? customUntilMaleValueCents : null,
+      custom_until_value_cents: customUntilValue ? Number(customUntilValue) : null,
+      custom_until_female_value_cents: customUntilFemaleValue ? Number(customUntilFemaleValue) : null,
+      custom_until_male_value_cents: customUntilMaleValue ? Number(customUntilMaleValue) : null,
       custom_after_by_gender: customAfterByGender,
-      custom_after_value_cents: customAfterValueCents ? customAfterValueCents : null,
-      custom_after_female_value_cents: customAfterFemaleValueCents ? customAfterFemaleValueCents : null,
-      custom_after_male_value_cents: customAfterMaleValueCents ? customAfterMaleValueCents : null,
+      custom_after_value_cents: customAfterValue ? Number(customAfterValue) : null,
+      custom_after_female_value_cents: customAfterFemaleValue ? Number(customAfterFemaleValue) : null,
+      custom_after_male_value_cents: customAfterMaleValue ? Number(customAfterMaleValue) : null,
       custom_link: customModeLink.trim() ? customModeLink.trim() : null,
     };
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/admin/events", {
-        method: "POST",
+      const res = await fetch(`/api/admin/events/${eventId}`, {
+        method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const details = (await res.json().catch(() => null)) as { error?: string } | null;
-        const message = details?.error ?? "Não foi possível cadastrar o evento.";
+        const message = details?.error ?? "Não foi possível salvar as alterações do evento.";
         setSubmitError(message);
         return;
       }
@@ -415,27 +437,10 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
       router.push("/admin/cadastros/roles-e-eventos");
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? `Erro ao cadastrar evento: ${err.message}` : "Erro ao cadastrar evento.",
+        err instanceof Error ? `Erro ao salvar evento: ${err.message}` : "Erro ao salvar evento.",
       );
     } finally {
       setIsSubmitting(false);
-    }
-  }
-
-  async function handleFetchCep() {
-    setCepError(null);
-    setIsFetchingCep(true);
-
-    try {
-      const address = await fetchAddressByCep(cep);
-      setStreet(address.street);
-      setNeighborhood(address.neighborhood);
-      setCity(address.city);
-      setState(address.state);
-    } catch (err) {
-      setCepError(err instanceof Error ? err.message : "Não foi possível buscar o CEP.");
-    } finally {
-      setIsFetchingCep(false);
     }
   }
 
@@ -445,8 +450,8 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-slate-900">Cadastrar evento</h1>
-            <p className="mt-1 text-sm text-slate-600">Preencha os dados para criar um novo evento.</p>
+            <h1 className="text-xl font-semibold text-slate-900">Editar evento</h1>
+            <p className="mt-1 text-sm text-slate-600">Edite os dados do evento e salve as alterações.</p>
           </div>
 
           <Button
@@ -459,7 +464,22 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
           </Button>
         </div>
 
-        <form onSubmit={handleCreate} autoComplete="off" data-lpignore="true" className="mt-8 grid gap-8">
+        <div className="mt-6">
+          {loading ? (
+            <div className="text-sm text-slate-600">Carregando evento...</div>
+          ) : loadError ? (
+            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {loadError}
+            </div>
+          ) : null}
+        </div>
+
+        <form
+          onSubmit={handleUpdate}
+          autoComplete="off"
+          data-lpignore="true"
+          className="mt-8 grid gap-8"
+        >
           {/* 1º Card - Informações gerais */}
           <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
@@ -467,7 +487,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
               <CardDescription>Identificação do evento e banner de destaque.</CardDescription>
             </CardHeader>
 
-              <div className="grid gap-6 p-6">
+            <div className="grid gap-6 p-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="title" className="font-medium text-slate-700">
@@ -545,9 +565,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                   {musicStylesError ? (
                     <div className="text-xs text-red-700">{musicStylesError}</div>
                   ) : (
-                    <div className="text-xs text-slate-500">
-                      Você pode selecionar um ou mais estilos.
-                    </div>
+                    <div className="text-xs text-slate-500">Você pode selecionar um ou mais estilos.</div>
                   )}
                 </div>
               </div>
@@ -562,11 +580,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
                     <div className="aspect-[16/6] w-full">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={bannerUrl}
-                        alt="Prévia do banner"
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={bannerUrl} alt="Prévia do banner" className="h-full w-full object-cover" />
                     </div>
                   </div>
 
@@ -578,10 +592,10 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
             </div>
           </Card>
 
-          {/* 2º Card - Data e horário (Premium) */}
+          {/* 2º Card - Data e horário */}
           <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
-              <CardTitle className="text-base text-slate-900">Data e horário (Premium)</CardTitle>
+              <CardTitle className="text-base text-slate-900">Data e horário</CardTitle>
               <CardDescription>Defina início e, se necessário, o término.</CardDescription>
             </CardHeader>
 
@@ -619,11 +633,9 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                 className="group flex cursor-pointer items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-sm transition-colors hover:bg-slate-50/80"
               >
                 <div className="grid gap-1">
-                  <div className="text-sm font-semibold text-slate-900">
-                    Inserir data e hora do término
-                  </div>
+                  <div className="text-sm font-semibold text-slate-900">Inserir data e hora do término</div>
                   <div className="text-xs text-slate-600">
-                    Se desmarcado, o término será igual ao início (pode ser ajustado depois).
+                    Se desmarcado, o término ficará igual ao início.
                   </div>
                 </div>
 
@@ -631,9 +643,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                   <span
                     className={[
                       "relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors",
-                      hasEndDateTime
-                        ? "border-[#F58318]/40 bg-[#F58318]/90"
-                        : "border-slate-300 bg-white",
+                      hasEndDateTime ? "border-[#F58318]/40 bg-[#F58318]/90" : "border-slate-300 bg-white",
                     ].join(" ")}
                   >
                     <input
@@ -685,273 +695,87 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
             </div>
           </Card>
 
-          {/* 3º Card - Localização */}
+          {/* 3º Card - Localização (somente selecionável) */}
           <Card className="overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm">
             <CardHeader className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60">
               <CardTitle className="text-base text-slate-900">Localização</CardTitle>
-              <CardDescription>Informe o local e o endereço do evento.</CardDescription>
+              <CardDescription>Selecione a localização cadastrada do evento.</CardDescription>
             </CardHeader>
 
             <div className="grid gap-6 p-6">
-              <div className="grid gap-2">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <div className="text-sm font-semibold text-slate-900">Tipo de localização</div>
+              <div className="grid gap-2 md:col-span-2">
+                <Label htmlFor="place_search" className="font-medium text-slate-700">
+                  Localização cadastrada
+                </Label>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPlaceMode("existing")}
-                      className={[
-                        "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                        placeMode === "existing"
-                          ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
-                          : "text-slate-600 hover:bg-white/60",
-                      ].join(" ")}
-                    >
-                      Selecionar cadastrada
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPlaceMode("new")}
-                      className={[
-                        "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                        placeMode === "new"
-                          ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
-                          : "text-slate-600 hover:bg-white/60",
-                      ].join(" ")}
-                    >
-                      Inserir nova
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-xs text-slate-500">
-                  Você pode usar uma localização já cadastrada ou preencher uma nova manualmente.
-                </div>
-              </div>
-
-              {placeMode === "existing" ? (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="grid gap-2 md:col-span-2">
-                    <Label htmlFor="place_search" className="font-medium text-slate-700">
-                      Localização cadastrada
-                    </Label>
-
-                    <div
-                      className="relative"
-                      ref={placeDropdownRef}
-                    >
-                      <Input
-                        id="place_search"
-                        value={placeSearch}
-                        onChange={(e) => {
-                          setPlaceSearch(e.target.value);
-                          setPlaceDropdownOpen(true);
-                        }}
-                        onFocus={() => setPlaceDropdownOpen(true)}
-                        placeholder="Digite para buscar (nome, cidade, UF, CEP)..."
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                      />
-
-                      {placeDropdownOpen ? (
-                        <div className="absolute left-0 right-0 top-full z-[9999] mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-                          {filteredPlaces.length ? (
-                            <div className="max-h-72 overflow-auto py-2">
-                              {filteredPlaces.map((p) => (
-                                <button
-                                  key={p.id}
-                                  type="button"
-                                  className={[
-                                    "flex w-full items-center px-4 py-2 text-left text-sm hover:bg-slate-50",
-                                    p.id === selectedPlaceId ? "bg-slate-50 text-slate-900" : "text-slate-900",
-                                  ].join(" ")}
-                                  onClick={() => {
-                                    setSelectedPlaceId(p.id);
-                                    setPlaceSearch(placeToLabel(p));
-                                    setPlaceDropdownOpen(false);
-                                  }}
-                                >
-                                  {placeToLabel(p)}
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="px-4 py-3 text-sm text-slate-600">Nenhum resultado.</div>
-                          )}
-                        </div>
-                      ) : null}
-                    </div>
-
-                    {selectedPlaceId ? (
-                      <div className="text-xs text-slate-500">
-                        {(() => {
-                          const p = places.find((x) => x.id === selectedPlaceId);
-                          if (!p) return null;
-                          const address = [
-                            p.logradouro,
-                            `nº ${p.numero}`,
-                            p.complemento ? p.complemento : null,
-                            p.bairro,
-                            `${p.cidade}/${p.uf}`,
-                            p.cep,
-                          ]
-                            .filter(Boolean)
-                            .join(" - ");
-                          return <span>Endereço: {address}</span>;
-                        })()}
-                      </div>
-                    ) : null}
-
-                    <div className="text-xs text-slate-500">
-                      Dica: clique no campo para abrir a lista. Ao selecionar, o item fica preenchido no campo.
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="location_name" className="font-medium text-slate-700">
-                        Nome do local
-                      </Label>
+                <div className="relative" ref={placeDropdownRef}>
                   <Input
-                    id="location_name"
-                    name="place_name"
+                    id="place_search"
+                    name="place_search"
                     autoComplete="new-password"
-                    value={locationName}
-                    onChange={(e) => setLocationName(e.target.value)}
-                    placeholder="Ex: Arena Roletei"
+                    value={placeSearch}
+                    onChange={(e) => {
+                      setPlaceSearch(e.target.value);
+                      setPlaceDropdownOpen(true);
+                    }}
+                    onFocus={() => setPlaceDropdownOpen(true)}
+                    placeholder="Digite para buscar (nome, cidade, UF, CEP)..."
                     className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                   />
+
+                  {placeDropdownOpen ? (
+                    <div className="absolute left-0 right-0 top-full z-[9999] mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                      {filteredPlaces.length ? (
+                        <div className="max-h-72 overflow-auto py-2">
+                          {filteredPlaces.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              className={[
+                                "flex w-full items-center px-4 py-2 text-left text-sm hover:bg-slate-50",
+                                p.id === selectedPlaceId ? "bg-slate-50 text-slate-900" : "text-slate-900",
+                              ].join(" ")}
+                              onClick={() => {
+                                setSelectedPlaceId(p.id);
+                                setPlaceSearch(placeToLabel(p));
+                                setPlaceDropdownOpen(false);
+                              }}
+                            >
+                              {placeToLabel(p)}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-slate-600">Nenhum resultado.</div>
+                      )}
                     </div>
+                  ) : null}
+                </div>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="cep" className="font-medium text-slate-700">
-                        CEP
-                      </Label>
-
-                      <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
-                        <Input
-                          id="cep"
-                          name="place_cep"
-                          autoComplete="new-password"
-                          value={cep}
-                          onChange={(e) => setCep(e.target.value)}
-                          placeholder="00000-000"
-                          className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => void handleFetchCep()}
-                          disabled={isFetchingCep}
-                          className="w-full border-slate-200 bg-white shadow-sm sm:w-auto"
-                        >
-                          {isFetchingCep ? "Buscando..." : "Buscar"}
-                        </Button>
-                      </div>
-
-                      {cepError ? <div className="text-xs text-red-700">{cepError}</div> : null}
-                    </div>
+                {selectedPlaceId ? (
+                  <div className="text-xs text-slate-500">
+                    {(() => {
+                      const p = places.find((x) => x.id === selectedPlaceId);
+                      if (!p) return null;
+                      const address = [
+                        p.logradouro,
+                        `nº ${p.numero}`,
+                        p.complemento ? p.complemento : null,
+                        p.bairro,
+                        `${p.cidade}/${p.uf}`,
+                        p.cep,
+                      ]
+                        .filter(Boolean)
+                        .join(" - ");
+                      return <span>Endereço: {address}</span>;
+                    })()}
                   </div>
+                ) : null}
 
-                  <div className="grid gap-4 md:grid-cols-6">
-                    <div className="grid gap-2 md:col-span-3">
-                      <Label htmlFor="street" className="font-medium text-slate-700">
-                        Rua / Logradouro
-                      </Label>
-                      <Input
-                        id="street"
-                        name="place_street"
-                        autoComplete="new-password"
-                        value={street}
-                        onChange={(e) => setStreet(e.target.value)}
-                        placeholder="Ex: Av. Paulista"
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-
-                    <div className="grid gap-2 md:col-span-2">
-                      <Label htmlFor="number" className="font-medium text-slate-700">
-                        Número
-                      </Label>
-                      <Input
-                        id="number"
-                        name="place_number"
-                        autoComplete="new-password"
-                        value={number}
-                        onChange={(e) => setNumber(e.target.value)}
-                        placeholder="Ex: 1000"
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-
-                    <div className="grid gap-2 md:col-span-1">
-                      <Label htmlFor="complement" className="font-medium text-slate-700">
-                        Complemento
-                      </Label>
-                      <Input
-                        id="complement"
-                        name="place_complement"
-                        autoComplete="new-password"
-                        value={complement}
-                        onChange={(e) => setComplement(e.target.value)}
-                        placeholder="Ex: Apto 12"
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-6">
-                    <div className="grid gap-2 md:col-span-3">
-                      <Label htmlFor="neighborhood" className="font-medium text-slate-700">
-                        Bairro
-                      </Label>
-                      <Input
-                        id="neighborhood"
-                        name="place_neighborhood"
-                        autoComplete="new-password"
-                        value={neighborhood}
-                        onChange={(e) => setNeighborhood(e.target.value)}
-                        placeholder="Ex: Bela Vista"
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-
-                    <div className="grid gap-2 md:col-span-2">
-                      <Label htmlFor="city" className="font-medium text-slate-700">
-                        Cidade
-                      </Label>
-                      <Input
-                        id="city"
-                        name="place_city"
-                        autoComplete="new-password"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="Ex: São Paulo"
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                      />
-                    </div>
-
-                    <div className="grid gap-2 md:col-span-1">
-                      <Label htmlFor="state" className="font-medium text-slate-700">
-                        Estado (UF)
-                      </Label>
-                      <Input
-                        id="state"
-                        name="place_state"
-                        autoComplete="new-password"
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        placeholder="Ex: SP"
-                        className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
-                        maxLength={2}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
+                <div className="text-xs text-slate-500">
+                  Dica: clique no campo para abrir a lista. Ao selecionar, o item fica preenchido no campo.
+                </div>
+              </div>
             </div>
           </Card>
 
@@ -1007,9 +831,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                   </button>
                 </div>
 
-                <div className="text-xs text-slate-500">
-                  Este valor será salvo no evento.
-                </div>
+                <div className="text-xs text-slate-500">Este valor será salvo no evento.</div>
               </div>
 
               {priceMode === "free" ? (
@@ -1073,9 +895,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                       >
                         <div className="grid gap-1">
                           <div className="text-sm font-semibold text-slate-900">Opcional</div>
-                          <div className="text-xs text-slate-600">
-                            Marque se o couvert pode ser opcional.
-                          </div>
+                          <div className="text-xs text-slate-600">Marque se o couvert pode ser opcional.</div>
                         </div>
 
                         <div className="pt-0.5">
@@ -1110,7 +930,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                         </Label>
                         <Input
                           id="paid_couvert_value"
-                          value={formatCurrencyBRLFromDigits(paidValue)}
+                          value={paidValue ? formatCurrencyBRLFromCents(Number(paidValue)) : ""}
                           onChange={(e) => setPaidValue(currencyDigitsFromInput(e.target.value))}
                           inputMode="numeric"
                           placeholder="R$ 0,00"
@@ -1135,9 +955,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                           <span
                             className={[
                               "relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors",
-                              paidByGender
-                                ? "border-[#F58318]/40 bg-[#F58318]/90"
-                                : "border-slate-300 bg-white",
+                              paidByGender ? "border-[#F58318]/40 bg-[#F58318]/90" : "border-slate-300 bg-white",
                             ].join(" ")}
                           >
                             <input
@@ -1165,7 +983,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                             </Label>
                             <Input
                               id="paid_value_female"
-                              value={formatCurrencyBRLFromDigits(paidFemaleValue)}
+                              value={paidFemaleValue ? formatCurrencyBRLFromCents(Number(paidFemaleValue)) : ""}
                               onChange={(e) => setPaidFemaleValue(currencyDigitsFromInput(e.target.value))}
                               inputMode="numeric"
                               placeholder="R$ 0,00"
@@ -1179,7 +997,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                             </Label>
                             <Input
                               id="paid_value_male"
-                              value={formatCurrencyBRLFromDigits(paidMaleValue)}
+                              value={paidMaleValue ? formatCurrencyBRLFromCents(Number(paidMaleValue)) : ""}
                               onChange={(e) => setPaidMaleValue(currencyDigitsFromInput(e.target.value))}
                               inputMode="numeric"
                               placeholder="R$ 0,00"
@@ -1194,7 +1012,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                           </Label>
                           <Input
                             id="paid_value"
-                            value={formatCurrencyBRLFromDigits(paidValue)}
+                            value={paidValue ? formatCurrencyBRLFromCents(Number(paidValue)) : ""}
                             onChange={(e) => setPaidValue(currencyDigitsFromInput(e.target.value))}
                             inputMode="numeric"
                             placeholder="R$ 0,00"
@@ -1312,18 +1130,13 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                         {customUntilByGender ? (
                           <div className="grid gap-4 md:grid-cols-2">
                             <div className="grid gap-2">
-                              <Label
-                                htmlFor="custom_until_value_female"
-                                className="font-medium text-slate-700"
-                              >
+                              <Label htmlFor="custom_until_value_female" className="font-medium text-slate-700">
                                 Valor feminino
                               </Label>
                               <Input
                                 id="custom_until_value_female"
-                                value={formatCurrencyBRLFromDigits(customUntilFemaleValue)}
-                                onChange={(e) =>
-                                  setCustomUntilFemaleValue(currencyDigitsFromInput(e.target.value))
-                                }
+                                value={customUntilFemaleValue ? formatCurrencyBRLFromCents(Number(customUntilFemaleValue)) : ""}
+                                onChange={(e) => setCustomUntilFemaleValue(currencyDigitsFromInput(e.target.value))}
                                 inputMode="numeric"
                                 placeholder="R$ 0,00"
                                 className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
@@ -1331,18 +1144,13 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                             </div>
 
                             <div className="grid gap-2">
-                              <Label
-                                htmlFor="custom_until_value_male"
-                                className="font-medium text-slate-700"
-                              >
+                              <Label htmlFor="custom_until_value_male" className="font-medium text-slate-700">
                                 Valor masculino
                               </Label>
                               <Input
                                 id="custom_until_value_male"
-                                value={formatCurrencyBRLFromDigits(customUntilMaleValue)}
-                                onChange={(e) =>
-                                  setCustomUntilMaleValue(currencyDigitsFromInput(e.target.value))
-                                }
+                                value={customUntilMaleValue ? formatCurrencyBRLFromCents(Number(customUntilMaleValue)) : ""}
+                                onChange={(e) => setCustomUntilMaleValue(currencyDigitsFromInput(e.target.value))}
                                 inputMode="numeric"
                                 placeholder="R$ 0,00"
                                 className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
@@ -1356,10 +1164,8 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                             </Label>
                             <Input
                               id="custom_until_value"
-                              value={formatCurrencyBRLFromDigits(customUntilValue)}
-                              onChange={(e) =>
-                                setCustomUntilValue(currencyDigitsFromInput(e.target.value))
-                              }
+                              value={customUntilValue ? formatCurrencyBRLFromCents(Number(customUntilValue)) : ""}
+                              onChange={(e) => setCustomUntilValue(currencyDigitsFromInput(e.target.value))}
                               inputMode="numeric"
                               placeholder="R$ 0,00"
                               className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
@@ -1388,9 +1194,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                         <span
                           className={[
                             "relative inline-flex h-6 w-11 shrink-0 rounded-full border transition-colors",
-                            customAfterByGender
-                              ? "border-[#F58318]/40 bg-[#F58318]/90"
-                              : "border-slate-300 bg-white",
+                            customAfterByGender ? "border-[#F58318]/40 bg-[#F58318]/90" : "border-slate-300 bg-white",
                           ].join(" ")}
                         >
                           <input
@@ -1413,18 +1217,13 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                     {customAfterByGender ? (
                       <div className="grid gap-4 md:grid-cols-2">
                         <div className="grid gap-2">
-                          <Label
-                            htmlFor="custom_after_value_female"
-                            className="font-medium text-slate-700"
-                          >
+                          <Label htmlFor="custom_after_value_female" className="font-medium text-slate-700">
                             Valor feminino
                           </Label>
                           <Input
                             id="custom_after_value_female"
-                            value={formatCurrencyBRLFromDigits(customAfterFemaleValue)}
-                            onChange={(e) =>
-                              setCustomAfterFemaleValue(currencyDigitsFromInput(e.target.value))
-                            }
+                            value={customAfterFemaleValue ? formatCurrencyBRLFromCents(Number(customAfterFemaleValue)) : ""}
+                            onChange={(e) => setCustomAfterFemaleValue(currencyDigitsFromInput(e.target.value))}
                             inputMode="numeric"
                             placeholder="R$ 0,00"
                             className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
@@ -1432,18 +1231,13 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                         </div>
 
                         <div className="grid gap-2">
-                          <Label
-                            htmlFor="custom_after_value_male"
-                            className="font-medium text-slate-700"
-                          >
+                          <Label htmlFor="custom_after_value_male" className="font-medium text-slate-700">
                             Valor masculino
                           </Label>
                           <Input
                             id="custom_after_value_male"
-                            value={formatCurrencyBRLFromDigits(customAfterMaleValue)}
-                            onChange={(e) =>
-                              setCustomAfterMaleValue(currencyDigitsFromInput(e.target.value))
-                            }
+                            value={customAfterMaleValue ? formatCurrencyBRLFromCents(Number(customAfterMaleValue)) : ""}
+                            onChange={(e) => setCustomAfterMaleValue(currencyDigitsFromInput(e.target.value))}
                             inputMode="numeric"
                             placeholder="R$ 0,00"
                             className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
@@ -1457,7 +1251,7 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                         </Label>
                         <Input
                           id="custom_after_value"
-                          value={formatCurrencyBRLFromDigits(customAfterValue)}
+                          value={customAfterValue ? formatCurrencyBRLFromCents(Number(customAfterValue)) : ""}
                           onChange={(e) => setCustomAfterValue(currencyDigitsFromInput(e.target.value))}
                           inputMode="numeric"
                           placeholder="R$ 0,00"
@@ -1479,12 +1273,10 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
                       className="border-slate-200 bg-white shadow-sm focus-visible:ring-[#F58318]"
                     />
                   </div>
-
                 </div>
               ) : null}
             </div>
           </Card>
-
 
           {submitError ? (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -1506,9 +1298,9 @@ export default function AdminCadastrosRolesEEventosNovoPage() {
             <Button
               type="submit"
               className="w-full bg-[#F58318] text-white hover:bg-[#F58318]/90 sm:w-auto"
-              disabled={isSubmitting}
+              disabled={isSubmitting || loading}
             >
-              {isSubmitting ? "Salvando..." : "Salvar Evento"}
+              {isSubmitting ? "Salvando..." : "Salvar alterações"}
             </Button>
           </div>
         </form>

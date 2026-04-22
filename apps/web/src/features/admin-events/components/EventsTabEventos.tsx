@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 
-import { MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -177,6 +177,12 @@ export function EventsTabEventos() {
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/admin/cadastros/roles-e-eventos/${ev.id}`}>
+                              <Pencil className="h-4 w-4" />
+                              Editar
+                            </Link>
+                          </DropdownMenuItem>
 
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600"
