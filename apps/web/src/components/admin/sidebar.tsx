@@ -41,10 +41,6 @@ export function AdminSidebar({
   const cadastrosChildren = useMemo(
     () => [
       {
-        href: "/admin/cadastros/eventos",
-        label: "Eventos",
-      },
-      {
         href: "/admin/cadastros/roles-e-eventos",
         label: "Rolês e Eventos",
       },

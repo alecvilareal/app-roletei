@@ -60,7 +60,7 @@ async function fetchAddressByCep(rawCep: string) {
   };
 }
 
-export default function AdminCadastrosEventosNovoPage() {
+export default function AdminCadastrosRolesEEventosNovoPage() {
   const router = useRouter();
 
   const [title, setTitle] = React.useState("");
@@ -175,7 +175,13 @@ export default function AdminCadastrosEventosNovoPage() {
       ? new Date(`${endDate}T${endTime}:00`).toISOString()
       : addMinutesToIso(startsAtIso, 120);
 
-    const locationAddress = [street.trim(), `nº ${number.trim()}`, neighborhood.trim(), `${city.trim()}/${state.trim()}`, cep.trim()]
+    const locationAddress = [
+      street.trim(),
+      `nº ${number.trim()}`,
+      neighborhood.trim(),
+      `${city.trim()}/${state.trim()}`,
+      cep.trim(),
+    ]
       .filter(Boolean)
       .join(" - ");
 
@@ -206,7 +212,7 @@ export default function AdminCadastrosEventosNovoPage() {
         return;
       }
 
-      router.push("/admin/cadastros/eventos");
+      router.push("/admin/cadastros/roles-e-eventos");
     } catch (err) {
       setSubmitError(
         err instanceof Error ? `Erro ao cadastrar evento: ${err.message}` : "Erro ao cadastrar evento.",
@@ -246,7 +252,7 @@ export default function AdminCadastrosEventosNovoPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/admin/cadastros/eventos")}
+            onClick={() => router.push("/admin/cadastros/roles-e-eventos")}
             className="w-full sm:w-auto"
           >
             Voltar
@@ -658,7 +664,7 @@ export default function AdminCadastrosEventosNovoPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/admin/cadastros/eventos")}
+              onClick={() => router.push("/admin/cadastros/roles-e-eventos")}
               disabled={isSubmitting}
               className="w-full sm:w-auto"
             >

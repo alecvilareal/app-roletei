@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { MoreVertical, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -44,8 +43,6 @@ function formatDateTime(iso: string) {
 }
 
 export function EventsTabEventos() {
-  const router = useRouter();
-
   const [events, setEvents] = React.useState<EventRow[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -124,7 +121,7 @@ export function EventsTabEventos() {
 
           <div className="flex items-center gap-2">
             <Button asChild className="bg-[#F58318] text-white hover:bg-[#F58318]/90">
-              <Link href="/admin/cadastros/eventos/novo">Adicionar evento</Link>
+              <Link href="/admin/cadastros/roles-e-eventos/novo">Adicionar evento</Link>
             </Button>
 
             <Button type="button" variant="outline" onClick={() => void loadRecentEvents()}>
@@ -180,15 +177,6 @@ export function EventsTabEventos() {
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onSelect={(e) => {
-                              e.preventDefault();
-                              router.push(`/admin/cadastros/eventos/${ev.id}/editar`);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
 
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600"
