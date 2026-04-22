@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 
 type CreateEventPayload = {
   title: string;
-  description?: string | null;
   banner_url?: string | null;
   location_name: string;
   location_address: string;
@@ -24,7 +23,6 @@ function toLocalDateTimeValue(d: Date) {
 
 export function EventsTabCadastrar() {
   const [title, setTitle] = React.useState("");
-  const [description, setDescription] = React.useState("");
   const [bannerUrl, setBannerUrl] = React.useState("");
   const [ticketsUrl, setTicketsUrl] = React.useState("");
   const [locationName, setLocationName] = React.useState("");
@@ -54,7 +52,6 @@ export function EventsTabCadastrar() {
 
     const payload: CreateEventPayload = {
       title: title.trim(),
-      description: description.trim() ? description.trim() : null,
       banner_url: bannerUrl.trim() ? bannerUrl.trim() : null,
       location_name: locationName.trim(),
       location_address: locationAddress.trim(),
@@ -91,7 +88,6 @@ export function EventsTabCadastrar() {
       setSubmitSuccess("Evento cadastrado com sucesso.");
 
       setTitle("");
-      setDescription("");
       setBannerUrl("");
       setTicketsUrl("");
       setLocationName("");
@@ -133,19 +129,6 @@ export function EventsTabCadastrar() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ex: Show da banda X"
             className="border-slate-200 focus-visible:ring-[#F58318]"
-          />
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="description" className="font-medium text-slate-700">
-            Descrição
-          </Label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Descrição do evento..."
-            className="min-h-28 w-full resize-y rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#F58318]"
           />
         </div>
 

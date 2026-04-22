@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, title, description, banner_url, location_name, location_address, starts_at, ends_at, is_active, created_at",
+      "id, title, banner_url, location_name, location_address, starts_at, ends_at, is_active, created_at",
     )
     .eq("is_active", true)
     .order("starts_at", { ascending: true })
