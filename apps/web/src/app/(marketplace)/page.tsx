@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   ChefHat,
@@ -282,6 +283,7 @@ function Section({
 }
 
 export default function Home() {
+  const router = useRouter();
   const [selectedFilter] = useState<Filter>("Tudo");
 
   const search = useEventSearch({ debounceMs: 300, limit: 8 });
@@ -380,6 +382,11 @@ export default function Home() {
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && query.trim()) {
+                        router.push(`/busca?q=${encodeURIComponent(query.trim())}`);
+                      }
+                    }}
                     placeholder="O que você quer curtir?"
                     className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500"
                   />
@@ -395,6 +402,7 @@ export default function Home() {
                     onSelect={(item) => {
                       console.log("event.search.select", item.id);
                       setQuery(item.label);
+                      router.push(`/marketplace/eventos/${item.id}`);
                     }}
                   />
                 </div>
@@ -439,7 +447,12 @@ export default function Home() {
 
                 {/* CTA */}
                 <div className="md:px-3">
-                  <Button className="h-12 w-full rounded-xl bg-[#F58318] px-8 font-semibold text-white hover:bg-[#F58318]/90 md:w-auto">
+                  <Button
+                    className="h-12 w-full rounded-xl bg-[#F58318] px-8 font-semibold text-white hover:bg-[#F58318]/90 md:w-auto"
+                    onClick={() => {
+                      if (query.trim()) router.push(`/busca?q=${encodeURIComponent(query.trim())}`);
+                    }}
+                  >
                     <Search className="mr-2 h-5 w-5" />
                     Buscar
                   </Button>

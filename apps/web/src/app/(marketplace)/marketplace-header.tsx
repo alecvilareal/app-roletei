@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ChevronDown, MapPin, Search } from "lucide-react";
 
@@ -81,6 +82,13 @@ function HeaderLinks({
 export function MarketplaceHeader() {
   const scrolled = useScrolled(64);
   const search = useEventSearch({ debounceMs: 300, limit: 8 });
+  const router = useRouter();
+
+  const goToSearchResults = () => {
+    const q = search.query.trim();
+    if (!q) return;
+    router.push(`/busca?q=${encodeURIComponent(q)}`);
+  };
 
   return (
     <header
@@ -125,6 +133,9 @@ export function MarketplaceHeader() {
               <Input
                 value={search.query}
                 onChange={(e) => search.setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") goToSearchResults();
+                }}
                 placeholder="O que você quer curtir hoje?"
                 className="h-10 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0"
               />
@@ -151,6 +162,7 @@ export function MarketplaceHeader() {
                 onSelect={(item) => {
                   console.log("event.search.select", item.id);
                   search.setQuery(item.label);
+                  router.push(`/marketplace/eventos/${item.id}`);
                 }}
               />
             </div>
