@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 import { meilisearchAdmin } from "@/lib/meilisearch";
 import { createClient } from "@/lib/supabase/server";
 
+type MeiliEventDoc = {
+  id: string;
+};
+
 export const dynamic = "force-dynamic";
 
 type MusicStyleRow = {
@@ -137,12 +141,37 @@ export async function GET() {
   // Seleciona (e cria automaticamente se não existir) o índice "events".
   const index = meilisearchAdmin.index("events");
 
-  // Envia documentos para o Meilisearch
-  const task = await index.addDocuments(documents);
+  // Garante que o campo "title" seja pesquisável e "starts_at" possa ser usado em sorting.
+  // (Sem isso, dependendo da configuração do índice, a busca pode retornar 0 hits.)
+  await index.updateSearchableAttributes(["title", "location_name", "location_address"]);
+
+  await index.updateSortableAttributes(["starts_at"]);
+
+  // Remove do índice documentos que foram apagados do banco.
+  const dbIds = new Set(documents.map((d) => d.id));
+
+  const meiliDocs = await index.getDocuments<MeiliEventDoc>({
+    fields: ["id"],
+    limit: 10_000,
+  });
+
+  const staleIds = (meiliDocs.results ?? [])
+    .map((d) => d.id)
+    .filter((id) => typeof id === "string" && id && !dbIds.has(id));
+
+  let deleteTask: unknown = null;
+  if (staleIds.length > 0) {
+    deleteTask = await index.deleteDocuments(staleIds);
+  }
+
+  // Envia documentos para o Meilisearch (upsert)
+  const addTask = await index.addDocuments(documents);
 
   return NextResponse.json({
     ok: true,
     sent: documents.length,
-    task,
+    deleted: staleIds.length,
+    deleteTask,
+    addTask,
   });
 }

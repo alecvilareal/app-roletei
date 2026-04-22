@@ -232,6 +232,7 @@ export async function POST(req: NextRequest) {
     return jsonError(400, "Campo inválido: ends_at deve ser maior que starts_at.");
   }
 
+
   // resolve local (place) se informado
   let resolvedPlace: {
     id: string;
