@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronDown, MapPin, Search } from "lucide-react";
 
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { useEventSearch } from "@/hooks/useEventSearch";
+import { cn } from "@/lib/utils";
 
 function useScrolled(threshold = 56) {
   const [scrolled, setScrolled] = useState(false);
@@ -139,36 +140,19 @@ export function MarketplaceHeader() {
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </button>
 
-              {search.query.trim().length > 0 ? (
-                <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-white shadow-lg">
-                  {search.loading ? (
-                    <div className="px-4 py-3 text-sm text-slate-600">
-                      Buscando...
-                    </div>
-                  ) : search.error ? (
-                    <div className="px-4 py-3 text-sm text-red-600">
-                      {search.error}
-                    </div>
-                  ) : search.results.length ? (
-                    <div className="py-2">
-                      {search.results.map((hit) => (
-                        <button
-                          key={hit.id}
-                          type="button"
-                          className="flex w-full items-center px-4 py-2 text-left text-sm text-slate-900 hover:bg-slate-50"
-                          onClick={() => search.setQuery(hit.title)}
-                        >
-                          {hit.title}
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-slate-600">
-                      Nenhum resultado.
-                    </div>
-                  )}
-                </div>
-              ) : null}
+              <SearchDropdown
+                open={search.query.trim().length > 0}
+                loading={search.loading}
+                error={search.error}
+                items={search.results.map((hit) => ({
+                  id: hit.id,
+                  label: hit.title,
+                }))}
+                onSelect={(item) => {
+                  console.log("event.search.select", item.id);
+                  search.setQuery(item.label);
+                }}
+              />
             </div>
           </div>
         </div>

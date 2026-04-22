@@ -17,10 +17,11 @@ import {
 
 import Image from "next/image";
 
+import { SearchDropdown } from "@/components/search/SearchDropdown";
 import { Button } from "@/components/ui/button";
 import { EventCard, type Event } from "@/features/events/components/EventCard";
-import { cn } from "@/lib/utils";
 import { useEventSearch } from "@/hooks/useEventSearch";
+import { cn } from "@/lib/utils";
 
 type CategoryKey = "shows" | "festas" | "teatro" | "gastronomia" | "esportes";
 
@@ -383,36 +384,19 @@ export default function Home() {
                     className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500"
                   />
 
-                  {query.trim().length > 0 ? (
-                    <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-white shadow-lg">
-                      {search.loading ? (
-                        <div className="px-4 py-3 text-sm text-slate-600">
-                          Buscando...
-                        </div>
-                      ) : search.error ? (
-                        <div className="px-4 py-3 text-sm text-red-600">
-                          {search.error}
-                        </div>
-                      ) : search.results.length ? (
-                        <div className="py-2">
-                          {search.results.map((hit) => (
-                            <button
-                              key={hit.id}
-                              type="button"
-                              className="flex w-full items-center px-4 py-2 text-left text-sm text-slate-900 hover:bg-slate-50"
-                              onClick={() => setQuery(hit.title)}
-                            >
-                              {hit.title}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="px-4 py-3 text-sm text-slate-600">
-                          Nenhum resultado.
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
+                  <SearchDropdown
+                    open={query.trim().length > 0}
+                    loading={search.loading}
+                    error={search.error}
+                    items={search.results.map((hit) => ({
+                      id: hit.id,
+                      label: hit.title,
+                    }))}
+                    onSelect={(item) => {
+                      console.log("event.search.select", item.id);
+                      setQuery(item.label);
+                    }}
+                  />
                 </div>
 
                 <div className="hidden h-10 w-px bg-border md:block" />
