@@ -7,6 +7,7 @@ import { ChevronDown, MapPin, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useEventSearch } from "@/hooks/useEventSearch";
 
 function useScrolled(threshold = 56) {
   const [scrolled, setScrolled] = useState(false);
@@ -78,6 +79,7 @@ function HeaderLinks({
 
 export function MarketplaceHeader() {
   const scrolled = useScrolled(64);
+  const search = useEventSearch({ debounceMs: 300, limit: 8 });
 
   return (
     <header
@@ -117,9 +119,11 @@ export function MarketplaceHeader() {
             )}
             aria-hidden={!scrolled}
           >
-            <div className="flex h-11 w-full items-center rounded-full border bg-card px-4 ring-1 ring-slate-200">
+            <div className="relative flex h-11 w-full items-center rounded-full border bg-card px-4 ring-1 ring-slate-200">
               <Search className="h-4 w-4 text-slate-400" />
               <Input
+                value={search.query}
+                onChange={(e) => search.setQuery(e.target.value)}
                 placeholder="O que você quer curtir hoje?"
                 className="h-10 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0"
               />
@@ -134,6 +138,37 @@ export function MarketplaceHeader() {
                 </span>
                 <ChevronDown className="h-4 w-4 text-slate-400" />
               </button>
+
+              {search.query.trim().length > 0 ? (
+                <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-white shadow-lg">
+                  {search.loading ? (
+                    <div className="px-4 py-3 text-sm text-slate-600">
+                      Buscando...
+                    </div>
+                  ) : search.error ? (
+                    <div className="px-4 py-3 text-sm text-red-600">
+                      {search.error}
+                    </div>
+                  ) : search.results.length ? (
+                    <div className="py-2">
+                      {search.results.map((hit) => (
+                        <button
+                          key={hit.id}
+                          type="button"
+                          className="flex w-full items-center px-4 py-2 text-left text-sm text-slate-900 hover:bg-slate-50"
+                          onClick={() => search.setQuery(hit.title)}
+                        >
+                          {hit.title}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-3 text-sm text-slate-600">
+                      Nenhum resultado.
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

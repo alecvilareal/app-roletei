@@ -20,6 +20,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { EventCard, type Event } from "@/features/events/components/EventCard";
 import { cn } from "@/lib/utils";
+import { useEventSearch } from "@/hooks/useEventSearch";
 
 type CategoryKey = "shows" | "festas" | "teatro" | "gastronomia" | "esportes";
 
@@ -281,7 +282,10 @@ function Section({
 
 export default function Home() {
   const [selectedFilter] = useState<Filter>("Tudo");
-  const [query, setQuery] = useState("");
+
+  const search = useEventSearch({ debounceMs: 300, limit: 8 });
+  const query = search.query;
+  const setQuery = search.setQuery;
   const [, setCategory] = useState<CategoryKey | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -370,7 +374,7 @@ export default function Home() {
             <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white shadow-sm ring-1 ring-border/60">
               <div className="flex flex-col gap-3 p-3 md:flex-row md:items-center md:gap-0">
                 {/* O que */}
-                <div className="flex items-center gap-3 rounded-xl px-3 py-3 md:flex-[1.4] md:py-2">
+                <div className="relative flex items-center gap-3 rounded-xl px-3 py-3 md:flex-[1.4] md:py-2">
                   <Search className="h-5 w-5 text-slate-500" />
                   <input
                     value={query}
@@ -378,6 +382,37 @@ export default function Home() {
                     placeholder="O que você quer curtir?"
                     className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500"
                   />
+
+                  {query.trim().length > 0 ? (
+                    <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-white shadow-lg">
+                      {search.loading ? (
+                        <div className="px-4 py-3 text-sm text-slate-600">
+                          Buscando...
+                        </div>
+                      ) : search.error ? (
+                        <div className="px-4 py-3 text-sm text-red-600">
+                          {search.error}
+                        </div>
+                      ) : search.results.length ? (
+                        <div className="py-2">
+                          {search.results.map((hit) => (
+                            <button
+                              key={hit.id}
+                              type="button"
+                              className="flex w-full items-center px-4 py-2 text-left text-sm text-slate-900 hover:bg-slate-50"
+                              onClick={() => setQuery(hit.title)}
+                            >
+                              {hit.title}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-3 text-sm text-slate-600">
+                          Nenhum resultado.
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="hidden h-10 w-px bg-border md:block" />
