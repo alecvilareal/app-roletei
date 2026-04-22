@@ -52,7 +52,7 @@ export function EventCard({ event }: Props) {
   const { placeName, fullAddress } = splitLocationLabel(event.locationLabel);
 
   return (
-    <Card className="group overflow-hidden rounded-2xl border border-slate-100 bg-card shadow-md transition-all duration-300 hover:border-slate-200 hover:shadow-xl">
+    <Card className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-md transition-all duration-300 hover:border-slate-200 hover:shadow-xl">
       {hasBanner ? (
         <>
           {/* Imagem */}
