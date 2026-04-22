@@ -40,7 +40,6 @@ type Filter = Event["category"] | "Tudo";
 type ApiEvent = {
   id: string;
   title: string;
-  description: string | null;
   banner_url: string | null;
   location_name: string;
   location_address: string;
@@ -48,6 +47,39 @@ type ApiEvent = {
   ends_at: string;
   is_active: boolean;
   created_at: string;
+
+  // valor/preço
+  price_mode?: "free" | "paid" | "custom" | null;
+
+  // free
+  free_access_type?: "none" | "list" | "ticket" | null;
+
+  // paid
+  paid_type?: "couvert" | "ticket" | "entry" | null;
+  is_couvert_optional?: boolean | null;
+  paid_by_gender?: boolean | null;
+  paid_value_cents?: number | null;
+  paid_female_value_cents?: number | null;
+  paid_male_value_cents?: number | null;
+
+  // custom
+  custom_mode_type?: "entry" | "ticket" | null;
+  custom_until_time?: string | null; // "HH:MM:SS"
+  custom_until_kind?: "free" | "value" | null;
+  custom_until_by_gender?: boolean | null;
+  custom_until_value_cents?: number | null;
+  custom_until_female_value_cents?: number | null;
+  custom_until_male_value_cents?: number | null;
+
+  custom_after_by_gender?: boolean | null;
+  custom_after_value_cents?: number | null;
+  custom_after_female_value_cents?: number | null;
+  custom_after_male_value_cents?: number | null;
+
+  // estilos musicais (N:N)
+  event_music_styles?: Array<{
+    category: { name: string } | null;
+  }>;
 };
 
 function monthAbbrPtBR(monthIndex0: number) {
@@ -68,8 +100,117 @@ function monthAbbrPtBR(monthIndex0: number) {
   return months[monthIndex0] ?? "";
 }
 
+function formatCentsBRL(cents: number) {
+  const value = cents / 100;
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+}
+
+function formatTimeHHMM(time: string | null | undefined) {
+  if (!time) return "";
+  // Supabase pode retornar "HH:MM:SS" (time) — queremos "HH:MM"
+  const parts = time.split(":");
+  return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : time;
+}
+
+function resolvePriceLabel(ev: ApiEvent): string {
+  const mode = ev.price_mode ?? "free";
+
+  if (mode === "free") return "Grátis";
+
+  if (mode === "paid") {
+    const typeLabel =
+      ev.paid_type === "couvert"
+        ? "Couvert"
+        : ev.paid_type === "ticket"
+          ? "Ingresso"
+          : ev.paid_type === "entry"
+            ? "Entrada"
+            : "Pago";
+
+    if (ev.paid_by_gender) {
+      const female = ev.paid_female_value_cents;
+      const male = ev.paid_male_value_cents;
+
+      const parts: string[] = [];
+      if (typeof female === "number" && Number.isFinite(female) && female > 0)
+        parts.push(`F: ${formatCentsBRL(female)}`);
+      if (typeof male === "number" && Number.isFinite(male) && male > 0)
+        parts.push(`M: ${formatCentsBRL(male)}`);
+
+      return parts.length ? `${typeLabel} ${parts.join(" • ")}` : typeLabel;
+    }
+
+    const v = ev.paid_value_cents;
+    if (typeof v === "number" && Number.isFinite(v) && v > 0) {
+      return `${typeLabel} ${formatCentsBRL(v)}`;
+    }
+
+    return typeLabel;
+  }
+
+  // custom
+  const modeLabel =
+    ev.custom_mode_type === "ticket" ? "Ingresso" : ev.custom_mode_type === "entry" ? "Entrada" : "Personalizado";
+
+  const untilTime = formatTimeHHMM(ev.custom_until_time);
+  const untilDetails =
+    ev.custom_until_kind === "free"
+      ? "Grátis"
+      : (() => {
+          if (ev.custom_until_by_gender) {
+            const parts: string[] = [];
+            const female = ev.custom_until_female_value_cents;
+            const male = ev.custom_until_male_value_cents;
+
+            if (typeof female === "number" && Number.isFinite(female) && female > 0)
+              parts.push(`F: ${formatCentsBRL(female)}`);
+            if (typeof male === "number" && Number.isFinite(male) && male > 0)
+              parts.push(`M: ${formatCentsBRL(male)}`);
+
+            return parts.length ? parts.join(" • ") : "";
+          }
+
+          const v = ev.custom_until_value_cents;
+          return typeof v === "number" && Number.isFinite(v) && v > 0 ? formatCentsBRL(v) : "";
+        })();
+
+  const afterDetails = (() => {
+    if (ev.custom_after_by_gender) {
+      const parts: string[] = [];
+      const female = ev.custom_after_female_value_cents;
+      const male = ev.custom_after_male_value_cents;
+
+      if (typeof female === "number" && Number.isFinite(female) && female > 0)
+        parts.push(`F: ${formatCentsBRL(female)}`);
+      if (typeof male === "number" && Number.isFinite(male) && male > 0)
+        parts.push(`M: ${formatCentsBRL(male)}`);
+
+      return parts.length ? parts.join(" • ") : "";
+    }
+
+    const v = ev.custom_after_value_cents;
+    return typeof v === "number" && Number.isFinite(v) && v > 0 ? formatCentsBRL(v) : "";
+  })();
+
+  // Formato desejado:
+  // "Entrada até às 20h R$25,00, após R$35,00"
+  const untilLabel = untilTime ? `até às ${untilTime}` : "até";
+  const untilPart = `${modeLabel} ${untilLabel}${untilDetails ? ` ${untilDetails}` : ""}`.trim();
+  const afterPart = `após${afterDetails ? ` ${afterDetails}` : ""}`.trim();
+
+  return `${untilPart}, ${afterPart}`;
+}
+
+function resolveMusicStyleTags(ev: ApiEvent): string[] {
+  const tags = (ev.event_music_styles ?? [])
+    .map((x) => x.category?.name?.trim())
+    .filter((x): x is string => Boolean(x));
+  return Array.from(new Set(tags));
+}
+
 function mapApiEventToCard(ev: ApiEvent): Event {
   const start = new Date(ev.starts_at);
+  const tags = resolveMusicStyleTags(ev);
 
   return {
     id: ev.id,
@@ -79,12 +220,15 @@ function mapApiEventToCard(ev: ApiEvent): Event {
       day: String(start.getDate()).padStart(2, "0"),
       month: monthAbbrPtBR(start.getMonth()),
     },
-    category: "Shows",
-    priceLabel: "Grátis",
-    image: {
-      src: ev.banner_url?.trim() || "/logo2.svg",
-      alt: ev.title,
-    },
+    category: "Eventos",
+    tags,
+    priceLabel: resolvePriceLabel(ev),
+    image: ev.banner_url?.trim()
+      ? {
+          src: ev.banner_url.trim(),
+          alt: ev.title,
+        }
+      : null,
   };
 }
 
@@ -363,18 +507,29 @@ export default function Home() {
                           !isCenter && "cursor-pointer",
                         )}
                       >
-                        <Image
-                          src={event.image.src}
-                          alt={event.image.alt}
-                          fill
-                          sizes="(max-width: 640px) 300px, 500px"
-                          className={cn(
-                            "object-cover transition-transform duration-500",
-                            isCenter && "group-hover:scale-[1.03]",
-                            !isCenter && "blur-[2px]",
-                          )}
-                          priority={isCenter}
-                        />
+                        {event.image ? (
+                          <Image
+                            src={event.image.src}
+                            alt={event.image.alt}
+                            fill
+                            sizes="(max-width: 640px) 300px, 500px"
+                            className={cn(
+                              "object-cover transition-transform duration-500",
+                              isCenter && "group-hover:scale-[1.03]",
+                              !isCenter && "blur-[2px]",
+                            )}
+                            priority={isCenter}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-700">
+                            <div className="text-center">
+                              <div className="text-xs font-semibold uppercase tracking-widest text-white/70">
+                                Roletei
+                              </div>
+                              <div className="mt-1 text-lg font-black text-white">Sem banner</div>
+                            </div>
+                          </div>
+                        )}
                         <div
                           className={cn(
                             "pointer-events-none absolute inset-0 bg-white transition-opacity duration-500",
