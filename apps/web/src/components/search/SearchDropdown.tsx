@@ -15,6 +15,7 @@ export function SearchDropdown({
   items,
   onSelect,
   className,
+  itemClassName,
 }: {
   open: boolean;
   loading: boolean;
@@ -23,13 +24,14 @@ export function SearchDropdown({
   items: SearchDropdownItem[];
   onSelect: (item: SearchDropdownItem) => void;
   className?: string;
+  itemClassName?: string;
 }) {
   if (!open) return null;
 
   return (
     <div
       className={cn(
-        "absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-white shadow-lg",
+        "absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-lg border border-input bg-white shadow-lg",
         className,
       )}
     >
@@ -43,7 +45,10 @@ export function SearchDropdown({
             <button
               key={item.id}
               type="button"
-              className="flex w-full items-center px-4 py-2 text-left text-sm text-slate-900 hover:bg-slate-50"
+              className={cn(
+                "flex w-full items-center px-4 py-2 text-left text-sm text-slate-900 hover:bg-slate-50",
+                itemClassName,
+              )}
               onClick={() => onSelect(item)}
             >
               {item.label}
