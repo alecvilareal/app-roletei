@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { MapPin } from "lucide-react";
 
@@ -52,7 +53,8 @@ export function EventCard({ event }: Props) {
   const { placeName, fullAddress } = splitLocationLabel(event.locationLabel);
 
   return (
-    <Card className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-md transition-all duration-300 hover:border-slate-200 hover:shadow-xl">
+    <Link href={`/eventos/${event.id}`} className="block">
+      <Card className="group overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-md transition-all duration-300 hover:border-slate-200 hover:shadow-xl">
       {hasBanner ? (
         <>
           {/* Imagem */}
@@ -174,5 +176,6 @@ export function EventCard({ event }: Props) {
         </div>
       )}
     </Card>
+    </Link>
   );
 }
