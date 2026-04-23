@@ -2,6 +2,8 @@ import { createClient as createSupabaseServerClient } from "@/lib/supabase/serve
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { meilisearchAdmin } from "@/lib/meilisearch";
+
 function jsonError(status: number, message: string, details?: unknown) {
   return NextResponse.json({ error: message, details: details ?? null }, { status });
 }
@@ -286,6 +288,25 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     .map((r) => r.category_id)
     .filter((x): x is string => typeof x === "string");
 
+  // Atualiza o índice do Meilisearch (não depende do sync manual).
+  try {
+    const index = meilisearchAdmin.index("events");
+    await index.addDocuments([
+      {
+        id: (data as { id: string }).id,
+        title: (data as { title?: string | null }).title ?? "",
+        banner_url: (data as { banner_url?: string | null }).banner_url ?? null,
+        location_name: (data as { location_name?: string | null }).location_name ?? "",
+        location_address: (data as { location_address?: string | null }).location_address ?? "",
+        starts_at: (data as { starts_at?: string | null }).starts_at ?? null,
+        ends_at: (data as { ends_at?: string | null }).ends_at ?? null,
+        is_active: true,
+      },
+    ]);
+  } catch {
+    // não quebra a edição se o Meilisearch estiver fora
+  }
+
   return NextResponse.json({ ...data, music_style_category_ids }, { status: 200 });
 }
 
@@ -303,6 +324,14 @@ export async function DELETE(_req: NextRequest, context: { params: Promise<{ id:
 
   if (error) {
     return jsonError(500, "Não foi possível excluir o evento.", error.message);
+  }
+
+  // Remove do índice do Meilisearch (não depende do sync manual).
+  try {
+    const index = meilisearchAdmin.index("events");
+    await index.deleteDocument(id);
+  } catch {
+    // não quebra a exclusão se o Meilisearch estiver fora
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });
