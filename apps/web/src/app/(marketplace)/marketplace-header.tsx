@@ -339,6 +339,7 @@ export function MarketplaceHeader() {
   const [zipLoading, setZipLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const autoLocationAttemptRef = useRef(false);
 
   const currentLocation = useMemo(
@@ -597,6 +598,19 @@ export function MarketplaceHeader() {
   }, [handleUseCurrentLocation, searchParamsString]);
 
   useEffect(() => {
+    function handleScroll() {
+      setIsScrolled(window.scrollY > 0);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node | null;
       if (!target) return;
@@ -638,7 +652,11 @@ export function MarketplaceHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-[100] bg-white shadow-md">
+    <header
+      className={`sticky top-0 z-[100] bg-white transition-all duration-200 ${
+        isScrolled ? "shadow-md" : "shadow-none"
+      }`}
+    >
       <div className="mx-auto flex h-20 w-full max-w-[1536px] items-center px-8">
         <div className="flex flex-1 justify-start">
           <Link href="/" className="flex items-center">
