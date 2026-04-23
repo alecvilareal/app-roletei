@@ -1,27 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Calendar,
   ChefHat,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Drama,
   Dumbbell,
-  Music,
   MapPin,
+  Music,
   PartyPopper,
-  Search,
 } from "lucide-react";
 
 import Image from "next/image";
 
-import { SearchDropdown } from "@/components/search/SearchDropdown";
 import { Button } from "@/components/ui/button";
 import { EventCard, type Event } from "@/features/events/components/EventCard";
-import { useEventSearch } from "@/hooks/useEventSearch";
 import { cn } from "@/lib/utils";
 
 type CategoryKey = "shows" | "festas" | "teatro" | "gastronomia" | "esportes";
@@ -113,6 +109,13 @@ function formatTimeHHMM(time: string | null | undefined) {
   // Supabase pode retornar "HH:MM:SS" (time) — queremos "HH:MM"
   const parts = time.split(":");
   return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : time;
+}
+
+function splitLocationLabel(locationLabel: string) {
+  const [placeNameRaw, ...rest] = locationLabel.split("•");
+  const placeName = (placeNameRaw ?? "").trim();
+  const fullAddress = rest.join("•").trim();
+  return { placeName, fullAddress };
 }
 
 function resolvePriceLabel(ev: ApiEvent): string {
@@ -254,18 +257,20 @@ function filterEvents(events: Event[], filter: Filter, query: string) {
 }
 
 function Section({
+  id,
   title,
   description,
   children,
   action,
 }: {
+  id?: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section className="mx-auto mt-12 w-full max-w-[1400px] px-6">
+    <section id={id} className="mx-auto mt-12 w-full max-w-[1400px] px-6">
       <div className="mb-6 flex items-end justify-between gap-6">
         <div className="space-y-1">
           <h2 className="text-xl font-bold tracking-tight text-foreground md:text-2xl">
@@ -286,12 +291,11 @@ export default function Home() {
   const router = useRouter();
   const [selectedFilter] = useState<Filter>("Tudo");
 
-  const search = useEventSearch({ debounceMs: 300, limit: 8 });
-  const query = search.query;
-  const setQuery = search.setQuery;
+  const query = "";
   const [, setCategory] = useState<CategoryKey | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isCarouselHovered, setIsCarouselHovered] = useState(false);
 
   const [events, setEvents] = useState<Event[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -338,137 +342,69 @@ export default function Home() {
   const free = filtered.filter((e) => e.priceLabel.toLowerCase().includes("grátis"));
 
   useEffect(() => {
-    if (!featured.length) return;
+    if (!featured.length || isCarouselHovered) return;
 
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % featured.length);
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [featured.length]);
+  }, [featured.length, isCarouselHovered]);
+
+  const scrollToFeatured = () => {
+    const el = document.getElementById("events-destaque");
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
       {/* Hero - marketplace minimalista (hierarquia: busca -> recomendados -> categorias) */}
       <section className="bg-slate-50">
         <div className="mx-auto w-full max-w-[1536px] px-6 py-10 md:py-12">
-          <div className="mb-10 flex justify-center">
+          <div className="mb-12 flex justify-center">
             <div
               className={[
                 "transition-all duration-500 ease-in transform",
-                scrolled
-                  ? "opacity-0 -translate-y-8"
-                  : "opacity-100 translate-y-0",
+                scrolled ? "opacity-0 -translate-y-8" : "opacity-100 translate-y-0",
               ].join(" ")}
               style={{ minHeight: 104 }}
             >
-              <Image
-                src="/logo1.svg"
-                alt="Roletei"
-                width={360}
-                height={117}
-                priority
-              />
+              <Image src="/logo1.svg" alt="Roletei" width={360} height={117} priority />
             </div>
           </div>
 
-          {/* Search Widget (topo) */}
-          <div>
-            <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white shadow-sm ring-1 ring-border/60">
-              <div className="flex flex-col gap-3 p-3 md:flex-row md:items-center md:gap-0">
-                {/* O que */}
-                <div className="relative flex items-center gap-3 rounded-xl px-3 py-3 md:flex-[1.4] md:py-2">
-                  <Search className="h-5 w-5 text-slate-500" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && query.trim()) {
-                        router.push(`/busca?q=${encodeURIComponent(query.trim())}`);
-                      }
-                    }}
-                    placeholder="O que você quer curtir?"
-                    className="h-10 w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-500"
-                  />
-
-                  <SearchDropdown
-                    open={query.trim().length > 0}
-                    loading={search.loading}
-                    error={search.error}
-                    items={search.results.map((hit) => ({
-                      id: hit.id,
-                      label: hit.title,
-                    }))}
-                    onSelect={(item) => {
-                      console.log("event.search.select", item.id);
-                      setQuery(item.label);
-                      router.push(`/marketplace/eventos/${item.id}`);
-                    }}
-                  />
-                </div>
-
-                <div className="hidden h-10 w-px bg-border md:block" />
-
-                {/* Onde */}
-                <button
-                  type="button"
-                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:flex-1 md:py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-slate-500" />
-                    <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-500">Onde</div>
-                      <div className="truncate text-sm font-semibold text-slate-900">
-                        Belo Horizonte, MG
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-5 w-5 text-slate-500" />
-                </button>
-
-                <div className="hidden h-10 w-px bg-border md:block" />
-
-                {/* Data */}
-                <button
-                  type="button"
-                  className="flex items-center justify-between gap-3 rounded-xl px-3 py-3 text-left md:flex-1 md:py-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-slate-500" />
-                    <div className="min-w-0">
-                      <div className="text-xs font-medium text-slate-500">Data</div>
-                      <div className="truncate text-sm font-semibold text-slate-900">
-                        Qualquer data
-                      </div>
-                    </div>
-                  </div>
-                  <ChevronDown className="h-5 w-5 text-slate-500" />
-                </button>
-
-                {/* CTA */}
-                <div className="md:px-3">
-                  <Button
-                    className="h-12 w-full rounded-xl bg-[#F58318] px-8 font-semibold text-white hover:bg-[#F58318]/90 md:w-auto"
-                    onClick={() => {
-                      if (query.trim()) router.push(`/busca?q=${encodeURIComponent(query.trim())}`);
-                    }}
-                  >
-                    <Search className="mr-2 h-5 w-5" />
-                    Buscar
-                  </Button>
-                </div>
-              </div>
+          <div className="mt-8 flex justify-center">
+            <div className="flex w-full max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
+              <Button
+                type="button"
+                className="h-12 w-full rounded-full border border-input bg-background px-6 text-sm font-semibold text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#F58318]/40 hover:bg-white hover:shadow-[0_0_0_1px_rgba(245,131,24,0.18),0_0_22px_rgba(245,131,24,0.14)] sm:w-[300px]"
+                onClick={scrollToFeatured}
+              >
+                O que tem pra hoje?
+              </Button>
+              <Button
+                type="button"
+                className="h-12 w-full rounded-full bg-[#F58318] px-6 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#F58318]/90 hover:shadow-[0_0_0_1px_rgba(245,131,24,0.25),0_0_26px_rgba(245,131,24,0.22)] sm:w-[300px]"
+                onClick={() => router.push("/busca")}
+              >
+                Encontrar meu Rolê
+              </Button>
             </div>
           </div>
 
           {/* Recomendados (carrossel) */}
           <div className="mt-12">
             <div className="mx-auto w-full max-w-[1400px]">
-              <h2 className="mb-0 w-full text-center text-base font-semibold tracking-tight text-foreground md:text-lg">
-                Próximos a você
+              <h2 className="-mb-1 w-full text-center text-base font-semibold tracking-tight text-foreground md:text-lg">
+                Rolês em Destaque
               </h2>
 
-              <div className="relative mx-auto mt-0 flex h-[260px] w-full max-w-[1400px] items-center justify-center overflow-visible sm:h-[400px]">
+              <div
+                className="relative mx-auto mt-0 flex h-[260px] w-full max-w-[1400px] items-center justify-center overflow-visible sm:h-[400px]"
+                onMouseEnter={() => setIsCarouselHovered(true)}
+                onMouseLeave={() => setIsCarouselHovered(false)}
+              >
                 {eventsLoading ? (
                   <div className="text-sm text-slate-600">Carregando eventos...</div>
                 ) : (
@@ -520,18 +456,12 @@ export default function Home() {
                     }
 
                     return (
-                      <a
+                      <Link
                         key={`rec-${event.id}`}
-                        href="#"
-                        onClick={(e) => {
-                          if (!isCenter) {
-                            e.preventDefault();
-                            setActiveIndex(index);
-                          }
-                        }}
+                        href={`/eventos/${event.id}`}
                         className={cn(
                           "absolute transition-all duration-500 ease-out",
-                          "h-[220px] w-[300px] sm:h-[320px] sm:w-[500px] overflow-hidden rounded-2xl bg-slate-900 shadow-2xl",
+                          "h-[220px] w-[300px] sm:h-[320px] sm:w-[500px] overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5",
                           translate,
                           scale,
                           zIndex,
@@ -553,41 +483,125 @@ export default function Home() {
                             priority={isCenter}
                           />
                         ) : (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-700">
-                            <div className="text-center">
-                              <div className="text-xs font-semibold uppercase tracking-widest text-white/70">
-                                Roletei
+                          <div className="flex h-full flex-col bg-gradient-to-br from-white via-white to-[#F58318]/5 p-5 sm:p-6">
+                            <div className="mb-4 flex items-center justify-between gap-3">
+                              <div className="rounded-full border border-[#F58318] bg-white/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#F58318] shadow-sm">
+                                Destaque
                               </div>
-                              <div className="mt-1 text-lg font-black text-white">Sem banner</div>
+
+                              <div className="rounded-xl bg-[#F58318] px-3 py-2 text-center shadow-sm">
+                                <div className="text-[15px] font-black leading-none text-white">
+                                  {event.dateChip.day}
+                                </div>
+                                <div className="mt-0.5 text-[10px] font-semibold tracking-wider text-white/80">
+                                  {event.dateChip.month}
+                                </div>
+                              </div>
+                            </div>
+
+                              <div className="flex flex-1 flex-col justify-between gap-4">
+                              <div className="space-y-3">
+                                <h3 className="line-clamp-2 text-xl font-black leading-snug tracking-tight text-slate-900 sm:text-2xl">
+                                  {event.title}
+                                </h3>
+
+                                {(event.tags ?? []).length ? (
+                                  <div className="flex flex-wrap gap-2">
+                                    {(event.tags ?? []).map((t) => (
+                                      <span
+                                        key={t}
+                                        className="rounded-full bg-[#F58318]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#F58318]"
+                                      >
+                                        {t}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : null}
+
+                                <div className="space-y-1.5 rounded-xl bg-slate-50 px-3 py-2">
+                                  {(() => {
+                                    const { placeName, fullAddress } = splitLocationLabel(event.locationLabel);
+                                    return (
+                                      <>
+                                        <div className="flex items-start gap-2 text-sm font-semibold text-slate-900">
+                                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-700" />
+                                          <span className="line-clamp-1">{placeName || event.locationLabel}</span>
+                                        </div>
+
+                                        {fullAddress ? (
+                                          <div className="pl-6 text-xs text-slate-500">{fullAddress}</div>
+                                        ) : null}
+                                      </>
+                                    );
+                                  })()}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-end">
+                                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-800">
+                                  {event.priceLabel}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         )}
-                        <div
-                          className={cn(
-                            "pointer-events-none absolute inset-0 bg-white transition-opacity duration-500",
-                            overlayOpacity,
-                          )}
-                        />
-                        <div
-                          className={cn(
-                            "pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.80),transparent_50%)] transition-opacity duration-500",
-                            offset === 0 ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        <div
-                          className={cn(
-                            "absolute bottom-0 left-0 right-0 p-5 sm:p-6 transition-opacity duration-500",
-                            offset === 0 ? "opacity-100" : "opacity-0",
-                          )}
-                        >
-                          <div className="line-clamp-2 text-base font-bold text-white sm:text-xl drop-shadow-md">
-                            {event.title}
-                          </div>
-                          <div className="mt-2 text-xs font-medium text-white/90 sm:text-sm drop-shadow">
-                            {event.locationLabel}
-                          </div>
-                        </div>
-                      </a>
+
+                        {event.image ? (
+                          <>
+                            <div
+                              className={cn(
+                                "pointer-events-none absolute inset-0 bg-white transition-opacity duration-500",
+                                overlayOpacity,
+                              )}
+                            />
+                            <div
+                              className={cn(
+                                "pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.80),transparent_50%)] transition-opacity duration-500",
+                                offset === 0 ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            <div
+                              className={cn(
+                                "absolute bottom-0 left-0 right-0 p-5 sm:p-6 transition-opacity duration-500",
+                                offset === 0 ? "opacity-100" : "opacity-0",
+                              )}
+                            >
+                              <div className="line-clamp-2 text-base font-bold text-white sm:text-xl drop-shadow-md">
+                                {event.title}
+                              </div>
+
+                              {(event.tags ?? []).length ? (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {(event.tags ?? []).map((t) => (
+                                    <span
+                                      key={t}
+                                      className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white backdrop-blur-sm"
+                                    >
+                                      {t}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : null}
+
+                              {(() => {
+                                const { placeName, fullAddress } = splitLocationLabel(event.locationLabel);
+                                return (
+                                  <div className="mt-2">
+                                    <div className="text-xs font-semibold text-white/95 sm:text-sm drop-shadow">
+                                      {placeName || event.locationLabel}
+                                    </div>
+                                    {fullAddress ? (
+                                      <div className="mt-0.5 text-[11px] font-medium text-white/70 sm:text-xs drop-shadow">
+                                        {fullAddress}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </>
+                        ) : null}
+                      </Link>
                     );
                   })
                 )}
@@ -647,6 +661,7 @@ export default function Home() {
 
       {/* Sections */}
       <Section
+        id="events-destaque"
         title="Eventos em Destaque em BH"
         description="Uma curadoria com o que está bombando agora."
         action={
